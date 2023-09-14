@@ -326,7 +326,6 @@ function sendServers(message) {
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
 }
 
-
 function sendPlans(message) {
     let chatId = message.chat.id;
     let text = 'یکی از پلن های زیرو انتخاب کیند';
