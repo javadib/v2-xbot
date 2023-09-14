@@ -16,37 +16,8 @@ const SECRET = "123456789wertyuiopxcvbnmDGHJKRTYIO" // A-Z, a-z, 0-9, _ and -
  */
 addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    let buttons = Plans.default.getButtons("mmdd");
-    console.log(`buttons: ${JSON.stringify(buttons)}`);
-
-
-
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-
-    var raw = JSON.stringify({
-        "chat_id": 76458757,
-        "reply_markup": {
-            "inline_keyboard": buttons
-        },
-        "text": "salam Jetbrain IDE"
-    });
-
-    var requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: raw
-    };
-
-    // console.log(`before reuest: ${JSON.stringify(requestOptions)}`);
-
-    fetch("https://api.telegram.org/bot6558330560:AAHfBf2CM4VeOE9n_jMeHpXv1lX1OGm8Iio/sendMessage", requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-
-
-
+    let buttons = Plans.default.getButtons(Server.default.seed.cmd);
+    // console.log(`buttons: ${JSON.stringify(buttons)}`);
 
     switch (url.pathname) {
         case WEBHOOK:
@@ -124,16 +95,20 @@ async function unRegisterWebhook(event) {
 /**
  * Return url to telegram api, optionally with parameters added
  */
-function apiUrl(methodName, params = null) {
+function apiUrl2(methodName) {
     let botUrl = `https://api.telegram.org/bot${TOKEN}/${methodName}`;
 
     return botUrl;
+}
 
+function apiUrl(methodName, params = null) {
+    let botUrl = `https://api.telegram.org/bot${TOKEN}/${methodName}`;
     let query = ''
 
     if (params) {
         query = '?' + new URLSearchParams(params).toString()
     }
+
     return `${botUrl}${query}`
 }
 
@@ -189,7 +164,7 @@ async function sendInlineButton(chatId, text, button) {
  * https://core.telegram.org/bots/api#sendmessage
  */
 async function sendInlineButtonRow(chatId, text, buttonRow, options = {}) {
-    return sendInlineButtons(chatId, text, [buttonRow], options)
+    return sendInlineButtons(chatId, text, buttonRow, options)
 }
 
 /**
@@ -206,9 +181,7 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
 
     let params = {
         chat_id: chatId,
-        reply_markup: JSON.stringify({
-            inline_keyboard: buttons
-        }),
+        reply_markup: {inline_keyboard: buttons},
         text
     };
 
@@ -217,24 +190,24 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
     }
 
 
-    let params2 = {
-        chat_id: chatId,
-        reply_markup:{
-            inline_keyboard: buttons
-        },
-        text
-    };
-    let myHeaders = new Headers();
+    const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    let requestOptions = {
+
+
+    const requestOptions = {
         method: 'POST',
         headers: myHeaders,
-        body: JSON.stringify(params2),
-        redirect: 'follow'
+        body: JSON.stringify(params)
     };
 
-    let json = (await fetch(apiUrl(method, params), requestOptions)).json();
+    // console.log(`before reuest: ${JSON.stringify(requestOptions)}`);
+    let botUrl = apiUrl2(method);
+    return fetch(botUrl, requestOptions)
+        // .then(response => response.text())
+        // .then(result => console.log(result))
+        // .catch(error => console.log('error', error));
 
+    let json = (await fetch(apiUrl(method, params), requestOptions)).json();
     console.log(`json: ${json}`);
 
     return json
@@ -275,9 +248,6 @@ async function onMessage(message) {
             case "/help":
                 return await sendStartMessage(message);
             case "select_server":
-                // let text1 = `before select_server: ${JSON.stringify(message)}`;
-                // let data = Server.default.getButtons(Plans.default.seed.cmd);
-                // await sendInlineButtonRow(message.chat.id, text1, data)
                 return await sendServers(message);
             case "select_plan":
                 return await sendPlans(message);
@@ -326,13 +296,10 @@ function sendStartMessage(message) {
         '📡 برقرای امنیت در ارتباط شما\n' +
         '☎️ پشتیبانی تا روز آخر \n';
 
-    return sendInlineButtonRow(message.chat.id, text, [{
-        text: 'خرید اشتراک',
-        callback_data: 'select_server'
-    }, {
-        text: 'وضعیت اشتراک',
-        callback_data: 'status_link'
-    }])
+    return sendInlineButtonRow(message.chat.id, text, [
+        [{text: 'خرید اشتراک', callback_data: 'select_server'}],
+        [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
+    ])
 }
 
 function sendHelpMessage(message) {
@@ -351,7 +318,6 @@ function sendHelpMessage(message) {
 function sendServers(message) {
     let chatId = message.chat.id;
     let text = 'یک لوکیشین برای اتصال، انتخاب کیند ';
-
     let data = Server.default.getButtons(Plans.default.seed.cmd);
 
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})

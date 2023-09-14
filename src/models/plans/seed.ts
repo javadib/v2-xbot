@@ -51,7 +51,7 @@ export default {
     result.push([data[1]])
     // result.push([data.slice(1)]);
 
-    // result.push([{text: "برگشت ↩️", callback_data: "select_server"}])
+    result.push([{text: "برگشت ↩️", callback_data: "select_server"}])
 
     return result;
   }
