@@ -2,7 +2,8 @@
 
 export default {
     seed: {
-        cmd: 'select_plans',
+        cmd: 'select_server',
+        prev_cmd: '/start',
         name: 'seed servers',
         data: [
             {
@@ -26,12 +27,18 @@ export default {
 
     getButtons(nextCmd: string, addBackButton = true) {
         let result: any[] = []
-        let data = this.seed.data.map(p => {return {text: p.model.title, callback_data: nextCmd}})
+        let data = this.seed.data.map(p => {
+            return [{text: p.model.title, callback_data: nextCmd}]
+        })
+        data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+
+
+        return data;
         result.push([data[0]])
         result.push([data[1]])
 
         // result.push(data)
-        // result.push([{text: "برگشت ↩️", callback_data: "/start"}])
+        result.push([{text: "برگشت ↩️", callback_data: "/start"}])
 
         return result;
     }

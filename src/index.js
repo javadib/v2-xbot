@@ -4,6 +4,8 @@
 
 import * as Server from './models/servers/seed'
 import * as Plans from './models/plans/seed'
+import * as Payment from './models/payments'
+import payments from "./models/payments";
 
 // const TOKEN = ENV_BOT_TOKEN // Get it from @BotFather https://core.telegram.org/bots#6-botfather
 const TOKEN = "6558330560:AAHfBf2CM4VeOE9n_jMeHpXv1lX1OGm8Iio" // Get it from @BotFather https://core.telegram.org/bots#6-botfather
@@ -247,19 +249,20 @@ async function onMessage(message) {
             case "/start":
             case "/help":
                 return await sendStartMessage(message);
-            case "select_server":
+            case Server.default.seed.cmd:
                 return await sendServers(message);
-            case "select_plan":
+            case Plans.default.seed.cmd:
                 return await sendPlans(message);
-            case "select_payment":
-                return await sendPlans(message);
+            case Payment.default.seed.cmd:
+                // await sendInlineButtonRow(message.chat.id, `${Plans.default.seed.cmd}....` )
+                return await sendPayments(message, "show_invoice");
             case "status_link":
                 return await sendStartMessage(message);
             default:
                 return await sendHelpMessage(message);
         }
     } catch (e) {
-        let text = e?.message || JSON.stringify(e);
+        let text = e?.stack || e?.message || JSON.stringify(e);
         await sendInlineButtonRow(message.chat.id, text, [])
         // await sendMarkdownV2Text(message.chat.id, text)
     }
@@ -323,15 +326,25 @@ function sendServers(message) {
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
 }
 
+
 function sendPlans(message) {
     let chatId = message.chat.id;
     let text = 'یکی از پلن های زیرو انتخاب کیند';
 
     let callbackData = "select_payment";
-    let data = Plans.default.getButtons(callbackData);
+    let buttons = Plans.default.getButtons(callbackData);
 
 
-    return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
+    return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+}
+
+function sendPayments(message, nextCmd) {
+    let chatId = message.chat.id;
+    let text = 'یک روش پر داخت رو انتخاب کنید';
+
+    let buttons = Payment.default.getButtons(nextCmd)
+
+    return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 function sendTwoButtons(chatId) {
