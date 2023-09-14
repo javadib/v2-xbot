@@ -4,8 +4,8 @@
   "author": "javadib",
   "repository": "https://github.com/javadib/v2-xbot.git",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "dev": "wrangler dev src/index.js",
+    "deploy": "wrangler deploy --minify src/index.js"
   },
   "dependencies": {
     "hono": "^3.6.0"
