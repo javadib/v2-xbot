@@ -256,9 +256,22 @@ async function onMessage(message) {
                 let payment = {[Payment.seed.cmd]: values[1].toString()};
                 await wkv.update(db, message.chat.id, payment)
 
-                let data = await db.get(message.chat.id);
+                let data = JSON.parse(await db.get(message.chat.id));
+                let sPlan = `${Plan.findById(data[Plan.seed.cmd])?.model}`;
+                let sPayment = `${Payment.findById(data[Payment.seed.cmd])?.model}`;
+                let msg = `〽️ نام پلن: ${sPlan?.name}
+➖➖➖➖➖➖➖
+💎 قیمت پنل : ${sPlan?.totalPrice} 
+➖➖➖➖➖➖➖
 
-                return await sendInlineButtonRow(message.chat.id, JSON.stringify(data), [
+♻️ عزیزم یه تصویر از فیش واریزی یا شماره پیگیری -  ساعت پرداخت - نام پرداخت کننده رو در یک پیام برام ارسال کن :
+
+🔰  ${sPayment?.title} 
+
+✅ بعد از اینکه پرداختت تایید شد ( لینک سرور ) به صورت خودکار از طریق همین ربات برات ارسال میشه!
+`
+
+                return await sendInlineButtonRow(message.chat.id, msg, [
                     [{text: 'خرید اشتراک', callback_data: 'select_server'}],
                     [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
                 ])

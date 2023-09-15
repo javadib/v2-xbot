@@ -57,6 +57,10 @@ module.exports = {
         }
 
         return data;
+    },
+
+    findById(id) {
+        return this.seed.data.find(p => p.model.id == id)
     }
 }
 

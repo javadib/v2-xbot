@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports =  {
+module.exports = {
     seed: {
         name: 'Seed Servers',
         cmd: 'select_server',
@@ -35,5 +35,9 @@ module.exports =  {
         }
 
         return data;
+    },
+
+    findById(id) {
+        return this.seed.data.find(p => p.model.id == id)
     }
 }
