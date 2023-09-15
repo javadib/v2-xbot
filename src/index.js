@@ -1,7 +1,4 @@
-/**
- * https://github.com/cvzi/telegram-bot-cloudflare
- */
-
+"use strict";
 
 const Plan = require('./models/plan');
 const Server = require('./models/server');
@@ -345,41 +342,5 @@ function sendPayments(message, nextCmd) {
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
-function sendTwoButtons(chatId) {
-    return sendInlineButtonRow(chatId, 'Press one of the two button', [{
-        text: 'Button One',
-        callback_data: 'data_1'
-    }, {
-        text: 'Button Two',
-        callback_data: 'data_2'
-    }])
-}
 
-function sendFourButtons(chatId) {
-    return sendInlineButtons(chatId, 'Press a button', [
-        [
-            {
-                text: 'Button top left',
-                callback_data: 'Utah'
-            }, {
-            text: 'Button top right',
-            callback_data: 'Colorado'
-        }
-        ],
-        [
-            {
-                text: 'Button bottom left',
-                callback_data: 'Arizona'
-            }, {
-            text: 'Button bottom right',
-            callback_data: 'New Mexico'
-        }
-        ]
-    ])
-}
 
-async function sendMarkdownExample(chatId) {
-    await sendMarkdownV2Text(chatId, 'This is *bold* and this is _italic_')
-    await sendMarkdownV2Text(chatId, escapeMarkdown('You can write it like this: *bold* and _italic_'))
-    return sendMarkdownV2Text(chatId, escapeMarkdown('...but users may write ** and __ e.g. `**bold**` and `__italic__`', '`'))
-}
