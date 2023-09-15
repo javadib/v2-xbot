@@ -3,6 +3,7 @@
 const Plan = require('./models/plan');
 const Server = require('./models/server');
 const Payment = require('./models/payment');
+const wkv = require('./wkv');
 
 // const TOKEN = ENV_BOT_TOKEN // Get it from @BotFather https://core.telegram.org/bots#6-botfather
 const TOKEN = "6558330560:AAHfBf2CM4VeOE9n_jMeHpXv1lX1OGm8Iio" // Get it from @BotFather https://core.telegram.org/bots#6-botfather
@@ -241,16 +242,21 @@ async function onMessage(message) {
             case Server.seed.cmd:
                 return await sendServers(message);
             case Plan.seed.cmd:
-                await sendInlineButtonRow(message.chat.id, `values: ${values[1]}`, [])
+                // await sendInlineButtonRow(message.chat.id, `typeof values: ${typeof values[1]}`, [])
+                let server = {[Server.seed.cmd]: values[1]};
+                await wkv.update(db, message.chat.id, server)
 
-                await db.put(message.chat.id, {[Server.seed.cmd]: values[1]});
                 return await sendPlans(message);
             case Payment.seed.cmd:
-                await db.put(message.chat.id, {[Plan.seed.cmd]: values[1]});
+                let plan = {[Plan.seed.cmd]: values[1]};
+                await wkv.update(db, message.chat.id, plan)
+
                 return await sendPayments(message, "show_invoice");
             case "show_invoice":
-                await db.put(message.chat.id, {[Payment.seed.cmd]: values[1]});
-                let data = await db.put(message.chat.id);
+                let payment = {[Payment.seed.cmd]: values[1].toString()};
+                await wkv.update(db, message.chat.id, payment)
+
+                let data = await db.get(message.chat.id);
 
                 return await sendInlineButtonRow(message.chat.id, JSON.stringify(data), [
                     [{text: 'خرید اشتراک', callback_data: 'select_server'}],
