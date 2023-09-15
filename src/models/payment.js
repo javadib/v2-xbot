@@ -19,7 +19,7 @@ module.exports =  {
   },
 
   getButtons(nextCmd, addBackButton = true) {
-    let data = this.seed.data.map(p => {return [{text: p.model.title, callback_data: nextCmd}]})
+    let data = this.seed.data.map(p => {return [{text: p.model.title, callback_data: `${nextCmd};${p.model.id}`}]})
 
     if (addBackButton) {
       data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])

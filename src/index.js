@@ -13,7 +13,7 @@ const SECRET = "123456789wertyuiopxcvbnmDGHJKRTYIO" // A-Z, a-z, 0-9, _ and -
 /**
  * Wait for requests to the worker
  */
-addEventListener('fetch', event => {
+addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
@@ -44,6 +44,7 @@ async function handleWebhook(event) {
 
     // Read request body synchronously
     const update = await event.request.json()
+
     // Deal with response asynchronously
     event.waitUntil(onUpdate(update))
 
@@ -200,14 +201,6 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
     // console.log(`before reuest: ${JSON.stringify(requestOptions)}`);
     let botUrl = apiUrl2(method);
     return fetch(botUrl, requestOptions)
-        // .then(response => response.text())
-        // .then(result => console.log(result))
-        // .catch(error => console.log('error', error));
-
-    let json = (await fetch(apiUrl(method, params), requestOptions)).json();
-    console.log(`json: ${json}`);
-
-    return json
 }
 
 /**
@@ -240,16 +233,29 @@ async function onCallbackQuery(callbackQuery) {
  */
 async function onMessage(message) {
     try {
-        switch (message.text.toLowerCase()) {
+        let values = message.text.split(';');
+        switch (values[0].toLowerCase()) {
             case "/start":
             case "/help":
                 return await sendStartMessage(message);
             case Server.seed.cmd:
                 return await sendServers(message);
             case Plan.seed.cmd:
+                await sendInlineButtonRow(message.chat.id, `values: ${values[1]}`, [])
+
+                await db.put(message.chat.id, {[Server.seed.cmd]: values[1]});
                 return await sendPlans(message);
             case Payment.seed.cmd:
+                await db.put(message.chat.id, {[Plan.seed.cmd]: values[1]});
                 return await sendPayments(message, "show_invoice");
+            case "show_invoice":
+                await db.put(message.chat.id, {[Payment.seed.cmd]: values[1]});
+                let data = await db.put(message.chat.id);
+
+                return await sendInlineButtonRow(message.chat.id, JSON.stringify(data), [
+                    [{text: 'خرید اشتراک', callback_data: 'select_server'}],
+                    [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
+                ])
             case "status_link":
                 return await sendStartMessage(message);
             default:
@@ -259,27 +265,6 @@ async function onMessage(message) {
         let text = e?.stack || e?.message || JSON.stringify(e);
         await sendInlineButtonRow(message.chat.id, text, [])
         // await sendMarkdownV2Text(message.chat.id, text)
-    }
-
-
-    return;
-    if (message.text.startsWith('/start') || message.text.startsWith('/help')) {
-        return sendMarkdownV2Text(message.chat.id, '*Functions:*\n' +
-            escapeMarkdown(
-                '`/help` - This message\n' +
-                '/button2 - Sends a message with two button\n' +
-                '/button4 - Sends a message with four buttons\n' +
-                '/markdown - Sends some MarkdownV2 examples\n',
-                '`'))
-    } else if (message.text.startsWith('/button2')) {
-        return sendTwoButtons(message.chat.id)
-    } else if (message.text.startsWith('/button4')) {
-        return sendFourButtons(message.chat.id)
-    } else if (message.text.startsWith('/markdown')) {
-        return sendMarkdownExample(message.chat.id)
-    } else {
-        return sendMarkdownV2Text(message.chat.id, escapeMarkdown('*Unknown command:* `' + message.text + '`\n' +
-            'Use /help to see available commands.', '*`'))
     }
 }
 
