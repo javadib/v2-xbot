@@ -2,9 +2,9 @@
  * https://github.com/cvzi/telegram-bot-cloudflare
  */
 
-import * as Server from './models/servers/seed'
 
 const Plan = require('./models/plan');
+const Server = require('./models/server');
 import * as Payment from './models/payments'
 import payments from "./models/payments";
 
@@ -19,7 +19,7 @@ const SECRET = "123456789wertyuiopxcvbnmDGHJKRTYIO" // A-Z, a-z, 0-9, _ and -
  */
 addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    let buttons = Plan.getButtons(Server.default.seed.cmd);
+    let buttons = Plan.getButtons(Server.seed.cmd);
     // console.log(`buttons: ${JSON.stringify(buttons)}`);
 
     switch (url.pathname) {
@@ -250,7 +250,7 @@ async function onMessage(message) {
             case "/start":
             case "/help":
                 return await sendStartMessage(message);
-            case Server.default.seed.cmd:
+            case Server.seed.cmd:
                 return await sendServers(message);
             case Plan.seed.cmd:
                 return await sendPlans(message);
@@ -321,7 +321,7 @@ function sendHelpMessage(message) {
 function sendServers(message) {
     let chatId = message.chat.id;
     let text = 'یک لوکیشین برای اتصال، انتخاب کیند ';
-    let data = Server.default.getButtons(Plan.seed.cmd);
+    let data = Server.getButtons(Plan.seed.cmd);
 
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
 }

@@ -50,7 +50,11 @@ module.exports = {
         let data = this.seed.data.map(p => {
             return [{text: p.model.name, callback_data: nextCmd}]
         })
-        data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])
+
+        if (addBackButton) {
+            data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])
+
+        }
 
         return data;
     }
