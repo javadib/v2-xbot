@@ -3,7 +3,8 @@
  */
 
 import * as Server from './models/servers/seed'
-import * as Plans from './models/plans/seed'
+
+const Plan = require('./models/plan');
 import * as Payment from './models/payments'
 import payments from "./models/payments";
 
@@ -18,7 +19,7 @@ const SECRET = "123456789wertyuiopxcvbnmDGHJKRTYIO" // A-Z, a-z, 0-9, _ and -
  */
 addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    let buttons = Plans.default.getButtons(Server.default.seed.cmd);
+    let buttons = Plan.getButtons(Server.default.seed.cmd);
     // console.log(`buttons: ${JSON.stringify(buttons)}`);
 
     switch (url.pathname) {
@@ -251,10 +252,9 @@ async function onMessage(message) {
                 return await sendStartMessage(message);
             case Server.default.seed.cmd:
                 return await sendServers(message);
-            case Plans.default.seed.cmd:
+            case Plan.seed.cmd:
                 return await sendPlans(message);
             case Payment.default.seed.cmd:
-                // await sendInlineButtonRow(message.chat.id, `${Plans.default.seed.cmd}....` )
                 return await sendPayments(message, "show_invoice");
             case "status_link":
                 return await sendStartMessage(message);
@@ -321,7 +321,7 @@ function sendHelpMessage(message) {
 function sendServers(message) {
     let chatId = message.chat.id;
     let text = 'یک لوکیشین برای اتصال، انتخاب کیند ';
-    let data = Server.default.getButtons(Plans.default.seed.cmd);
+    let data = Server.default.getButtons(Plan.seed.cmd);
 
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
 }
@@ -331,7 +331,7 @@ function sendPlans(message) {
     let text = 'یکی از پلن های زیرو انتخاب کیند';
 
     let callbackData = "select_payment";
-    let buttons = Plans.default.getButtons(callbackData);
+    let buttons = Plan.getButtons(callbackData);
 
 
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})

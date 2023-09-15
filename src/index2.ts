@@ -1,6 +1,6 @@
 import {Hono} from 'hono'
 
-import Seed from './models/plans/seed'
+import Seed from './models/seed'
 
 const app = new Hono()
 
