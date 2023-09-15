@@ -1,9 +1,10 @@
 'use strict';
 
-export default {
+module.exports =  {
     seed: {
-        cmd: 'select_plans',
-        name: 'seed servers',
+        name: 'Seed Servers',
+        cmd: 'select_server',
+        prev_cmd: '/start',
         data: [
             {
                 model: {
@@ -24,16 +25,15 @@ export default {
         ],
     },
 
-    getButtons(nextCmd: string, addBackButton = true): any[][] {
-        let result: any[][] = [];
+    getButtons(nextCmd, addBackButton = true) {
         let data = this.seed.data.map(p => {
-            return {text: p.model.title, callback_data: nextCmd}
+            return [{text: p.model.title, callback_data: nextCmd}]
         })
-        // data.push({text: "برگشت ↩️", callback_data: "/start"})
 
-        // result.push(data)
-        result.push([{text: "برگشت ↩️", callback_data: "/start"}])
+        if (addBackButton) {
+            data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+        }
 
-        return result;
+        return data;
     }
 }
