@@ -257,8 +257,8 @@ async function onMessage(message) {
                 await wkv.update(db, message.chat.id, payment)
 
                 let data = JSON.parse(await db.get(message.chat.id));
-                let sPlan = `${Plan.findById(data[Plan.seed.cmd])?.model}`;
-                let sPayment = `${Payment.findById(data[Payment.seed.cmd])?.model}`;
+                let sPlan = Plan.findById(data[Plan.seed.cmd])?.model;
+                let sPayment = Payment.findById(data[Payment.seed.cmd])?.model;
                 let msg = `〽️ نام پلن: ${sPlan?.name}
 ➖➖➖➖➖➖➖
 💎 قیمت پنل : ${sPlan?.totalPrice} 
@@ -266,7 +266,7 @@ async function onMessage(message) {
 
 ♻️ عزیزم یه تصویر از فیش واریزی یا شماره پیگیری -  ساعت پرداخت - نام پرداخت کننده رو در یک پیام برام ارسال کن :
 
-🔰  ${sPayment?.title} 
+🔰  ${sPayment?.appKey} - ${sPayment?.appSecret} 
 
 ✅ بعد از اینکه پرداختت تایید شد ( لینک سرور ) به صورت خودکار از طریق همین ربات برات ارسال میشه!
 `
