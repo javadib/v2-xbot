@@ -15,8 +15,6 @@ const SECRET = "123456789wertyuiopxcvbnmDGHJKRTYIO" // A-Z, a-z, 0-9, _ and -
  */
 addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    let buttons = Plan.getButtons(Server.seed.cmd);
-    // console.log(`buttons: ${JSON.stringify(buttons)}`);
 
     switch (url.pathname) {
         case WEBHOOK:
@@ -284,7 +282,6 @@ async function onMessage(message) {
             'Use /help to see available commands.', '*`'))
     }
 }
-
 
 function sendStartMessage(message) {
     let text = 'سلااام به ربات ویزویز خوش اومدی 🫡🌸\n' +
