@@ -1,6 +1,6 @@
 'use strict';
 
-export default {
+module.exports =  {
   seed: {
     name: 'Seed Payments',
     cmd: 'select_payment',
@@ -18,12 +18,11 @@ export default {
     ],
   },
 
-  getButtons(nextCmd: string, addBackButton = true) {
+  getButtons(nextCmd, addBackButton = true) {
     let data = this.seed.data.map(p => {return [{text: p.model.title, callback_data: nextCmd}]})
 
     if (addBackButton) {
       data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])
-
     }
 
     return data;

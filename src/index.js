@@ -5,8 +5,7 @@
 
 const Plan = require('./models/plan');
 const Server = require('./models/server');
-import * as Payment from './models/payments'
-import payments from "./models/payments";
+const Payment = require('./models/payment');
 
 // const TOKEN = ENV_BOT_TOKEN // Get it from @BotFather https://core.telegram.org/bots#6-botfather
 const TOKEN = "6558330560:AAHfBf2CM4VeOE9n_jMeHpXv1lX1OGm8Iio" // Get it from @BotFather https://core.telegram.org/bots#6-botfather
@@ -254,7 +253,7 @@ async function onMessage(message) {
                 return await sendServers(message);
             case Plan.seed.cmd:
                 return await sendPlans(message);
-            case Payment.default.seed.cmd:
+            case Payment.seed.cmd:
                 return await sendPayments(message, "show_invoice");
             case "status_link":
                 return await sendStartMessage(message);
@@ -341,7 +340,7 @@ function sendPayments(message, nextCmd) {
     let chatId = message.chat.id;
     let text = 'یک روش پر داخت رو انتخاب کنید';
 
-    let buttons = Payment.default.getButtons(nextCmd)
+    let buttons = Payment.getButtons(nextCmd)
 
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
