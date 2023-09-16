@@ -243,7 +243,7 @@ function transform(template, model) {
  */
 async function onMessage(message, options = {}) {
     try {
-        let usrSession = JSON.parse(await db.get(message.chat.id));
+        let usrSession = JSON.parse(await db.get(message.chat.id)) || {};
         let values = message.text.split(';');
 
         switch (values[0].toLowerCase()) {
@@ -402,16 +402,20 @@ async function rejectOrder(message, session, options = {}) {
         return await sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
+    let userChatId = values[1];
     let res = await editButtons(message, [
         [{text: "سفارش رد شده!", callback_data: Config.commands.silentButton}],
         [{
             text: "↩️ بازنگری",
-            callback_data: `${Config.commands.updateNewOrderButtons};${values[1]}`
+            callback_data: `${Config.commands.updateNewOrderButtons};${userChatId}`
         }],
     ])
 
+    // Delete user session
+    await db.delete(userChatId)
+
     let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
-    return await sendInlineButtonRow(Number(values[1]), text, [
+    return await sendInlineButtonRow(Number(userChatId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
         ]
