@@ -62,10 +62,10 @@ async function onUpdate(update) {
     if ('message' in update) {
         await onMessage(update.message)
     }
+
     if ('callback_query' in update) {
         let message = update.callback_query.message;
         message.text = update.callback_query.data;
-
 
         await onMessage(message)
         // await onCallbackQuery(update.callback_query)
@@ -239,7 +239,9 @@ function transform(template, model) {
  */
 async function onMessage(message) {
     try {
+        let usrSession = JSON.parse(await db.get(message.chat.id));
         let values = message.text.split(';');
+
         switch (values[0].toLowerCase()) {
             case "/start":
             case "/help":
@@ -266,16 +268,22 @@ async function onMessage(message) {
                     await wkv.update(db, message.chat.id, payment);
                 }
 
+                await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
+                let result = await sendInvoice(message, usrSession, "show_invoice");
+                await wkv.update(db, message.chat.id, {lastCmd: "show_invoice", isLast: true});
 
-                let userSession = JSON.parse(await db.get(message.chat.id));
-                await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(userSession)}`, [])
-
-                return await sendInvoice(message, userSession, "show_invoice");
+                return result;
+            case "saved_order":
+                return await savedOrder(message, usrSession);
             case "status_link":
                 return await sendStartMessage(message);
-            default:
-                return await sendHelpMessage(message);
         }
+
+        // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
+
+        return !usrSession.isLast ? await sendHelpMessage(message) :
+            await savedOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
+
     } catch (e) {
         let text = e?.stack || e?.message || JSON.stringify(e);
         await sendInlineButtonRow(message.chat.id, text, [])
@@ -330,6 +338,28 @@ function sendPlans(message) {
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
+async function sendOrderToAdmin(message, session) {
+    let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
+    let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
+    let msg = Order.adminNewOrder(message.chat?.user || message.chat, sPlan, sPayment, message.text);
+
+    return await sendInlineButtonRow(76458757, msg, [
+        [{text: "پیگیری", callback_data: "send_message"}]
+    ])
+}
+
+async function savedOrder(message, session) {
+    let chatId = message.chat.id;
+    // let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
+    // let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
+
+    let msg = Order.meta.templates.savedOrder.text;
+
+    return await sendInlineButtonRow(chatId, msg, [
+        [{text: "پیگیری", callback_data: "send_message"}]
+    ])
+}
+
 async function sendInvoice(message, session, nextCmd) {
     let chatId = message.chat.id;
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
@@ -338,7 +368,7 @@ async function sendInvoice(message, session, nextCmd) {
     let msg = Order.reviewInvoice(sPlan, sPayment);
 
     return await sendInlineButtonRow(chatId, msg, [
-        [{text: '❗️ لغو خرید', callback_data: '/start'}],
+        // [{text: '❗️ لغو خرید', callback_data: '/start'}],
         [{text: "برگشت ↩️", callback_data: Payment.seed.cmd}]
     ], {method: 'editMessageText', messageId: message.message_id})
 }
