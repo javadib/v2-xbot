@@ -247,19 +247,25 @@ async function onMessage(message) {
             case Server.seed.cmd:
                 return await sendServers(message);
             case Plan.seed.cmd:
-                // await sendInlineButtonRow(message.chat.id, `typeof values: ${typeof values[1]}`, [])
-                let server = {[Server.seed.cmd]: values[1]};
-                await wkv.update(db, message.chat.id, server)
+                if (values[1]) {
+                    let server = {[Server.seed.cmd]: values[1]};
+                    await wkv.update(db, message.chat.id, server);
+                }
 
                 return await sendPlans(message);
             case Payment.seed.cmd:
-                let plan = {[Plan.seed.cmd]: values[1]};
-                await wkv.update(db, message.chat.id, plan)
+                if (values[1]) {
+                    let plan = {[Plan.seed.cmd]: values[1]};
+                    await wkv.update(db, message.chat.id, plan)
+                }
 
                 return await sendPayments(message, "show_invoice");
             case "show_invoice":
-                let payment = {[Payment.seed.cmd]: values[1].toString()};
-                await wkv.update(db, message.chat.id, payment);
+                if (values[1]) {
+                    let payment = {[Payment.seed.cmd]: values[1].toString()};
+                    await wkv.update(db, message.chat.id, payment);
+                }
+
 
                 let userSession = JSON.parse(await db.get(message.chat.id));
                 await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(userSession)}`, [])
