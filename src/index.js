@@ -264,7 +264,6 @@ async function onMessage(message) {
                 let userSession = JSON.parse(await db.get(message.chat.id));
                 await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(userSession)}`, [])
 
-
                 return await sendInvoice(message, userSession, "show_invoice");
             case "status_link":
                 return await sendStartMessage(message);
@@ -333,7 +332,8 @@ async function sendInvoice(message, session, nextCmd) {
     let msg = Order.reviewInvoice(sPlan, sPayment);
 
     return await sendInlineButtonRow(chatId, msg, [
-        [{text: '❗️ لغو خرید', callback_data: '/start'}]
+        [{text: '❗️ لغو خرید', callback_data: '/start'}],
+        [{text: "برگشت ↩️", callback_data: Payment.seed.cmd}]
     ], {method: 'editMessageText', messageId: message.message_id})
 }
 
