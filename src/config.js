@@ -2,7 +2,8 @@
 
 module.exports = {
     commands: {
-        silentButton: "/silentButton"
+        silentButton: "/silentButton",
+        updateNewOrderButtons: "/updateNewOrderButtons"
     },
     bot: {
         name: "v2Box-me",

@@ -6,6 +6,7 @@ const Server = require('./models/server');
 const Order = require('./models/order');
 const Payment = require('./models/payment');
 const wkv = require('./wkv');
+const admin = require("./models/admin");
 
 const TOKEN = Config.bot.token
 const WEBHOOK = Config.bot.webHook
@@ -60,14 +61,14 @@ async function handleWebhook(event) {
  */
 async function onUpdate(update) {
     if ('message' in update) {
-        await onMessage(update.message)
+        await onMessage(update.message, {update})
     }
 
     if ('callback_query' in update) {
         let message = update.callback_query.message;
         message.text = update.callback_query.data;
 
-        await onMessage(message)
+        await onMessage(message, {update})
         // await onCallbackQuery(update.callback_query)
     }
 }
@@ -172,7 +173,6 @@ async function sendInlineButtonRow(chatId, text, buttonRow, options = {}) {
  * https://core.telegram.org/bots/api#sendmessage
  */
 async function sendInlineButtons(chatId, text, buttons, options = {}) {
-    // let method = 'sendMessage';
     let method = options.method || 'sendMessage';
     let messageId = options.messageId;
 
@@ -181,9 +181,13 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
 
     let params = {
         chat_id: chatId,
-        reply_markup: {inline_keyboard: buttons},
-        text
+        reply_markup: {inline_keyboard: buttons}
     };
+
+
+    if (text) {
+        params.text = text
+    }
 
     if (messageId) {
         params.message_id = messageId
@@ -237,7 +241,7 @@ function transform(template, model) {
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-async function onMessage(message) {
+async function onMessage(message, options = {}) {
     try {
         let usrSession = JSON.parse(await db.get(message.chat.id));
         let values = message.text.split(';');
@@ -280,9 +284,9 @@ async function onMessage(message) {
                 return await confirmOrder(message, usrSession);
             case "reject_order".toLowerCase():
                 //TODO: admin ACL check
-                return await rejectOrder(message, usrSession)
-            case "reject_order_response".toLowerCase():
-                return await savedOrder1(message, usrSession);
+                return await rejectOrder(message, usrSession, options)
+            case Config.commands.updateNewOrderButtons.toLowerCase():
+                return await updateNewOrderButtons(message);
             case "status_link".toLowerCase():
                 return await sendStartMessage(message);
         }
@@ -365,30 +369,44 @@ async function confirmOrder(message, session) {
 }
 
 async function editButtons(message, buttons = []) {
-    return await sendInlineButtonRow(message.chat_id || message.chat.id, message.text, buttons, {
-        method: 'editMessageText',
+    return await sendInlineButtonRow(message.chat_id || message.chat.id, undefined, buttons, {
+        method: 'editMessageReplyMarkup',
         messageId: message.message_id
     });
 }
 
-async function rejectOrder(message, session) {
+async function updateNewOrderButtons(message, options = {}) {
+    let values = message.text.split(';');
+
+    if (values.length < 2) {
+        let text = `${updateNewOrderButtons.name} : تعداد پارامترها صحیح نیست!`;
+        return await sendInlineButtonRow(Config.bot.adminId, text, [])
+    }
+
+    let buttons = admin.updateNewOrderButtons({chat_id: values[1]});
+
+    return await editButtons(message, buttons);
+}
+
+async function rejectOrder(message, session, options = {}) {
     await wkv.update(db, message.chat.id, {rejected: true});
     let values = message.text.split(';');
+
+
+    // let ssss = `update: ${JSON.stringify(options.update)}`;
+    // await sendInlineButtonRow(Config.bot.adminId, ssss, [])
 
     if (values.length < 2) {
         return await sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
-
     let res = await editButtons(message, [
-        [
-            {text: "سفارش رد شده!", callback_data: Config.commands.silentButton}
-            // {text: "↩️ بازنگری", callback_data: Config.commands.silentButton}
-        ]
+        [{text: "سفارش رد شده!", callback_data: Config.commands.silentButton}],
+        [{
+            text: "↩️ بازنگری",
+            callback_data: `${Config.commands.updateNewOrderButtons};${values[1]}`
+        }],
     ])
-
-    // let ssss = `message: ${JSON.stringify(message)} && res: ${await res.text()}`;
-    // await sendInlineButtonRow(Config.bot.adminId, ssss, [])
 
     let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
     return await sendInlineButtonRow(Number(values[1]), text, [
@@ -403,12 +421,8 @@ async function sendOrderToAdmin(message, session) {
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
     let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
 
-    return await sendInlineButtonRow(Config.bot.adminId, msg, [
-        [
-            {text: "✅  تایید", callback_data: `confirm_order;${message.chat.id}`},
-            {text: "❌ رد درخواست", callback_data: `reject_order;${message.chat.id}`}
-        ]
-    ])
+    let buttons = admin.updateNewOrderButtons(message);
+    return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
 async function savedOrder(message, session) {
