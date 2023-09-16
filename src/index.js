@@ -265,7 +265,7 @@ async function onMessage(message) {
                 let sPlan = Plan.findById(data[Plan.seed.cmd])?.model;
                 let sPayment = Payment.findById(data[Payment.seed.cmd])?.model;
 
-                let msg = Order.reviewInvoice({sPlan, sPayment});
+                let msg = Order.reviewInvoice(sPlan, sPayment);
 
                 return await sendInlineButtonRow(message.chat.id, msg, [
                     [{text: '❗️ لغو خرید', callback_data: '/start'}]
