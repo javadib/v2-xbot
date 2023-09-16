@@ -268,7 +268,7 @@ async function onMessage(message) {
                     await wkv.update(db, message.chat.id, payment);
                 }
 
-                await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
+                // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
                 let result = await sendInvoice(message, usrSession, "show_invoice");
                 await wkv.update(db, message.chat.id, {lastCmd: "show_invoice", isLast: true});
 
@@ -279,7 +279,7 @@ async function onMessage(message) {
                 return await sendStartMessage(message);
         }
 
-        // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
+        await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(message)}`, [])
 
         return !usrSession.isLast ? await sendHelpMessage(message) :
             await savedOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
@@ -341,7 +341,7 @@ function sendPlans(message) {
 async function sendOrderToAdmin(message, session) {
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
-    let msg = Order.adminNewOrder(message.chat?.user || message.chat, sPlan, sPayment, message.text);
+    let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
 
     return await sendInlineButtonRow(76458757, msg, [
         [{text: "پیگیری", callback_data: "send_message"}]

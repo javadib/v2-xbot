@@ -46,9 +46,10 @@ module.exports = {
         ],
     },
 
-    getButtons(nextCmd, addBackButton = true) {
+    getButtons(nextCmd, options = {}) {
+        let {addBackButton = true, unitPrice = "تومان"} = options;
         let data = this.seed.data.map(p => {
-            return [{text: p.model.name, callback_data: `${nextCmd};${p.model.id}`}]
+            return [{text: `${p.model.name} - ${p.model.totalPrice.toLocaleString()} ${unitPrice}`, callback_data: `${nextCmd};${p.model.id}`}]
         })
 
         if (addBackButton) {

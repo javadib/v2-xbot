@@ -20,7 +20,7 @@ module.exports = {
     },
 
     adminNewOrder(tUser, sPlan, sPayment, message) {
-        return `💳 خرید جدید ( کارت به کارت )\n\n▫️آیدی کاربر: ${tUser.id}\n⚡️ نام کاربری: @${tUser.username}\n💰مبلغ پرداختی: ${sPlan.totalPrice} تومان\n✏️ نام سرویس: ${sPlan.name}\n\n    \nاطلاعات واریز: ${message.text}`
+        return `💳 خرید جدید ( کارت به کارت )\n\n▫️آیدی کاربر: ${tUser.id}\n⚡️ نام کاربری: @${tUser.username}\n💰مبلغ پرداختی: ${sPlan.totalPrice.toLocaleString()} تومان\n✏️ نام سرویس: ${sPlan.name}\n\n    \nاطلاعات واریز: ${message.text}`
     },
 
     reviewInvoice(sPlan, sPayment) {
