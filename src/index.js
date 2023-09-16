@@ -243,26 +243,28 @@ async function onMessage(message) {
         let values = message.text.split(';');
 
         switch (values[0].toLowerCase()) {
-            case "/start":
-            case "/help":
+            case Config.commands.silentButton.toLowerCase():
+                return await Promise.resolve();
+            case "/start".toLowerCase():
+            case "/help".toLowerCase():
                 return await sendStartMessage(message);
-            case Server.seed.cmd:
+            case Server.seed.cmd.toLowerCase():
                 return await sendServers(message);
-            case Plan.seed.cmd:
+            case Plan.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let server = {[Server.seed.cmd]: values[1]};
                     await wkv.update(db, message.chat.id, server);
                 }
 
                 return await sendPlans(message);
-            case Payment.seed.cmd:
+            case Payment.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let plan = {[Plan.seed.cmd]: values[1]};
                     await wkv.update(db, message.chat.id, plan)
                 }
 
                 return await sendPayments(message, "show_invoice");
-            case "show_invoice":
+            case "show_invoice".toLowerCase():
                 if (values[1]) {
                     let payment = {[Payment.seed.cmd]: values[1].toString()};
                     await wkv.update(db, message.chat.id, payment);
@@ -273,22 +275,22 @@ async function onMessage(message) {
                 await wkv.update(db, message.chat.id, {lastCmd: "show_invoice", isLast: true});
 
                 return result;
-            case "confirmOrder":
+            case "confirmOrder.toLowerCase()":
                 //TODO: admin ACL check
                 return await confirmOrder(message, usrSession);
-            case "reject_order":
+            case "reject_order".toLowerCase():
                 //TODO: admin ACL check
                 return await rejectOrder(message, usrSession)
-            case "reject_order_response":
+            case "reject_order_response".toLowerCase():
                 return await savedOrder1(message, usrSession);
-            case "status_link":
+            case "status_link".toLowerCase():
                 return await sendStartMessage(message);
         }
 
         let result = !usrSession.isLast ? await sendHelpMessage(message) :
             await savedOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
 
-        await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
+        // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
 
 
         return result;
@@ -362,6 +364,13 @@ async function confirmOrder(message, session) {
     ])
 }
 
+async function editButtons(message, buttons = []) {
+    return await sendInlineButtonRow(message.chat_id || message.chat.id, message.text, buttons, {
+        method: 'editMessageText',
+        messageId: message.message_id
+    });
+}
+
 async function rejectOrder(message, session) {
     await wkv.update(db, message.chat.id, {rejected: true});
     let values = message.text.split(';');
@@ -370,9 +379,22 @@ async function rejectOrder(message, session) {
         return await sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
+
+    let res = await editButtons(message, [
+        [
+            {text: "سفارش رد شده!", callback_data: Config.commands.silentButton}
+            // {text: "↩️ بازنگری", callback_data: Config.commands.silentButton}
+        ]
+    ])
+
+    // let ssss = `message: ${JSON.stringify(message)} && res: ${await res.text()}`;
+    // await sendInlineButtonRow(Config.bot.adminId, ssss, [])
+
     let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
     return await sendInlineButtonRow(Number(values[1]), text, [
-        {text: "✨  شروع مجدد", callback_data: "/start"}
+        [
+            {text: "✨  شروع مجدد", callback_data: "/start"}
+        ]
     ])
 }
 
@@ -384,7 +406,7 @@ async function sendOrderToAdmin(message, session) {
     return await sendInlineButtonRow(Config.bot.adminId, msg, [
         [
             {text: "✅  تایید", callback_data: `confirm_order;${message.chat.id}`},
-            {text: "❌ رد درخواست3", callback_data: `reject_order;${message.chat.id}`}
+            {text: "❌ رد درخواست", callback_data: `reject_order;${message.chat.id}`}
         ]
     ])
 }
