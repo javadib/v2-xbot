@@ -259,17 +259,13 @@ async function onMessage(message) {
                 return await sendPayments(message, "show_invoice");
             case "show_invoice":
                 let payment = {[Payment.seed.cmd]: values[1].toString()};
-                await wkv.update(db, message.chat.id, payment)
+                await wkv.update(db, message.chat.id, payment);
 
-                let data = JSON.parse(await db.get(message.chat.id));
-                let sPlan = Plan.findById(data[Plan.seed.cmd])?.model;
-                let sPayment = Payment.findById(data[Payment.seed.cmd])?.model;
+                let userSession = JSON.parse(await db.get(message.chat.id));
+                await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(userSession)}`, [])
 
-                let msg = Order.reviewInvoice(sPlan, sPayment);
 
-                return await sendInlineButtonRow(message.chat.id, msg, [
-                    [{text: '❗️ لغو خرید', callback_data: '/start'}]
-                ])
+                return await sendInvoice(message, userSession, "show_invoice");
             case "status_link":
                 return await sendStartMessage(message);
             default:
@@ -327,6 +323,18 @@ function sendPlans(message) {
 
 
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+}
+
+async function sendInvoice(message, session, nextCmd) {
+    let chatId = message.chat.id;
+    let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
+    let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
+
+    let msg = Order.reviewInvoice(sPlan, sPayment);
+
+    return await sendInlineButtonRow(chatId, msg, [
+        [{text: '❗️ لغو خرید', callback_data: '/start'}]
+    ], {method: 'editMessageText', messageId: message.message_id})
 }
 
 function sendPayments(message, nextCmd) {

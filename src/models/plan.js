@@ -21,7 +21,7 @@ module.exports = {
             },
             {
                 model: {
-                    "id": 1,
+                    "id": 2,
                     "name": "60 روزه 60 گیگ",
                     "totalPrice": 170000,
                     "maxDays": 30,
@@ -33,7 +33,7 @@ module.exports = {
             },
             {
                 model: {
-                    "id": 1,
+                    "id": 3,
                     "name": "90 روزه 90 گیگ",
                     "totalPrice": 250000,
                     "maxDays": 90,
