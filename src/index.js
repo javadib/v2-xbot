@@ -279,7 +279,7 @@ async function onMessage(message, options = {}) {
                 await wkv.update(db, message.chat.id, {lastCmd: "show_invoice", isLast: true});
 
                 return result;
-            case "confirmOrder.toLowerCase()":
+            case "confirm_order".toLowerCase():
                 //TODO: admin ACL check
                 return await confirmOrder(message, usrSession);
             case "reject_order".toLowerCase():
@@ -292,7 +292,7 @@ async function onMessage(message, options = {}) {
         }
 
         let result = !usrSession.isLast ? await sendHelpMessage(message) :
-            await savedOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
+            await saveOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
 
@@ -302,7 +302,6 @@ async function onMessage(message, options = {}) {
     } catch (e) {
         let text = e?.stack || e?.message || JSON.stringify(e);
         await sendInlineButtonRow(message.chat.id, text, [])
-        // await sendMarkdownV2Text(message.chat.id, text)
     }
 }
 
@@ -355,6 +354,9 @@ function sendPlans(message) {
 
 async function confirmOrder(message, session) {
     return Promise.resolve();
+
+
+
     let chatId = message.chat.id;
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
@@ -425,7 +427,7 @@ async function sendOrderToAdmin(message, session) {
     return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
-async function savedOrder(message, session) {
+async function saveOrder(message, session) {
     let chatId = message.chat.id;
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
