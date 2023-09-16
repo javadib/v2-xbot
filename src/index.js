@@ -2,6 +2,7 @@
 
 const Plan = require('./models/plan');
 const Server = require('./models/server');
+const Order = require('./models/order');
 const Payment = require('./models/payment');
 const wkv = require('./wkv');
 
@@ -228,6 +229,10 @@ async function onCallbackQuery(callbackQuery) {
     return answerCallbackQuery(callbackQuery.id, 'Button press acknowledged!')
 }
 
+function transform(template, model) {
+    return new Function('return `' + template + '`;').call(model);
+}
+
 /**
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
@@ -259,21 +264,11 @@ async function onMessage(message) {
                 let data = JSON.parse(await db.get(message.chat.id));
                 let sPlan = Plan.findById(data[Plan.seed.cmd])?.model;
                 let sPayment = Payment.findById(data[Payment.seed.cmd])?.model;
-                let msg = `〽️ نام پلن: ${sPlan?.name}
-➖➖➖➖➖➖➖
-💎 قیمت پنل : ${sPlan?.totalPrice} 
-➖➖➖➖➖➖➖
 
-♻️ عزیزم یه تصویر از فیش واریزی یا شماره پیگیری -  ساعت پرداخت - نام پرداخت کننده رو در یک پیام برام ارسال کن :
-
-🔰  ${sPayment?.appKey} - ${sPayment?.appSecret} 
-
-✅ بعد از اینکه پرداختت تایید شد ( لینک سرور ) به صورت خودکار از طریق همین ربات برات ارسال میشه!
-`
+                let msg = Order.reviewInvoice({sPlan, sPayment});
 
                 return await sendInlineButtonRow(message.chat.id, msg, [
-                    [{text: 'خرید اشتراک', callback_data: 'select_server'}],
-                    [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
+                    [{text: '❗️ لغو خرید', callback_data: '/start'}]
                 ])
             case "status_link":
                 return await sendStartMessage(message);
