@@ -285,8 +285,8 @@ async function onMessage(message, options = {}) {
             case "reject_order".toLowerCase():
                 //TODO: admin ACL check
                 return await rejectOrder(message, usrSession, options)
-            case Config.commands.updateNewOrderButtons.toLowerCase():
-                return await updateNewOrderButtons(message);
+            // case Config.commands.updateNewOrderButtons.toLowerCase():
+            //     return await updateNewOrderButtons(message);
             case "status_link".toLowerCase():
                 return await sendStartMessage(message);
         }
@@ -349,7 +349,7 @@ async function editButtons(message, buttons = []) {
     });
 }
 
-async function updateNewOrderButtons(message, options = {}) {
+async function updateNewOrderButtons(message) {
     let values = message.text.split(';');
 
     if (values.length < 2) {
@@ -409,6 +409,8 @@ async function rejectOrder(message) {
 
     let opt = {}
     let orderId = values[1];
+    let {model, userChatId, unixTime} = Order.parseId(orderId);
+
     let order = JSON.parse(await db.get(orderId)) || {};
     if (order.invoiceMessageId) {
         opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
@@ -416,13 +418,8 @@ async function rejectOrder(message) {
 
     await wkv.update(orderId, {rejected: true});
 
-
-    //TODO: fixme
-    // Delete user session
-    // await db.delete(orderId)
-
     let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
-    let response = await sendInlineButtonRow(Number(orderId), text, [
+    let response = await sendInlineButtonRow(Number(userChatId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
         ]
@@ -436,12 +433,12 @@ async function rejectOrder(message) {
     return response
 }
 
-async function sendOrderToAdmin(message, session, newOrder) {
+async function sendOrderToAdmin(message, session, orderId) {
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
     let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
 
-    let buttons = admin.updateNewOrderButtons(message);
+    let buttons = admin.updateNewOrderButtons(message, orderId);
     return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
@@ -464,15 +461,15 @@ async function saveOrder(message, session, sendToAdmin = true, deleteSession = t
     })
 
     let orderId = Order.getId(chatId);
-    // await sendInlineButtonRow(chatId, `savedNewOrder ${orderId}: ${JSON.stringify(newOrder)} `, []);
-    let savedNewOrder = await wkv.put(orderId, JSON.stringify(newOrder))
+    await wkv.put(orderId, newOrder)
+
 
     if (deleteSession) {
         await wkv.delete(chatId)
     }
 
     if (sendToAdmin) {
-        await sendOrderToAdmin(message, session, savedNewOrder)
+        await sendOrderToAdmin(message, session, orderId)
     }
     return sentUserOrderRes
 }

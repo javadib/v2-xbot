@@ -7,11 +7,11 @@ module.exports = {
         command: {}
     },
 
-    updateNewOrderButtons(message) {
+    updateNewOrderButtons(id) {
         return [
             [
-                {text: "✅  تایید", callback_data: `confirm_order;${message.chat_id || message.chat.id}`},
-                {text: "❌ رد درخواست", callback_data: `reject_order;${message.chat_id || message.chat.id}`}
+                {text: "✅  تایید", callback_data: `confirm_order;${id}`},
+                {text: "❌ رد درخواست", callback_data: `reject_order;${id}`}
             ]
         ];
     },

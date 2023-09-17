@@ -12,7 +12,9 @@ module.exports = class wKV {
     };
 
     put(key, value) {
-        return this.ns.put(key, value)
+        let val = typeof value === 'object' ? JSON.stringify(value) : value;
+
+        return this.ns.put(key, val)
     };
 
     delete(key) {
