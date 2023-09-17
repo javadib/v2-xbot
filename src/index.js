@@ -349,19 +349,6 @@ async function editButtons(message, buttons = []) {
     });
 }
 
-// async function updateNewOrderButtons(message) {
-//     let values = message.text.split(';');
-//
-//     if (values.length < 2) {
-//         let text = `${updateNewOrderButtons.name} : تعداد پارامترها صحیح نیست!`;
-//         return await sendInlineButtonRow(Config.bot.adminId, text, [])
-//     }
-//
-//     let buttons = admin.updateNewOrderButtons({chat_id: values[1]});
-//
-//     return await editButtons(message, buttons);
-// }
-
 async function confirmOrder(message) {
     let values = message.text.split(';');
     let orderId = values[1];
@@ -470,9 +457,7 @@ async function saveOrder(message, session, sendToAdmin = true, deleteSession = t
     }
 
     if (sendToAdmin) {
-        await sendInlineButtonRow(Config.bot.adminId, `orderId: (${typeof orderId}) && ${orderId}`, [])
-
-        await sendOrderToAdmin(message, session, orderId.toString())
+        await sendOrderToAdmin(message, session, orderId)
     }
     return sentUserOrderRes
 }

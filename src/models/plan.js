@@ -11,7 +11,7 @@ module.exports = {
                 model: {
                     "id": 1,
                     "name": "30 روزه 30 گیگ",
-                    "totalPrice": 10000,
+                    "totalPrice": 100000,
                     "maxDays": 30,
                     "volume": 30,
                     "maxIp": 1,
@@ -24,8 +24,8 @@ module.exports = {
                     "id": 2,
                     "name": "60 روزه 60 گیگ",
                     "totalPrice": 170000,
-                    "maxDays": 30,
-                    "volume": 30,
+                    "maxDays": 60,
+                    "volume": 60,
                     "maxIp": 1,
                     "sharedId": 0,
                     "note": "ایاددشت برای ادمین"
