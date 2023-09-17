@@ -7,7 +7,7 @@ module.exports = {
         command: {}
     },
 
-    updateNewOrderButtons(id) {
+    getNewOrderButtons(id) {
         return [
             [
                 {text: "✅  تایید", callback_data: `confirm_order;${id}`},

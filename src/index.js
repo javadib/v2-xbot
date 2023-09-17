@@ -349,18 +349,18 @@ async function editButtons(message, buttons = []) {
     });
 }
 
-async function updateNewOrderButtons(message) {
-    let values = message.text.split(';');
-
-    if (values.length < 2) {
-        let text = `${updateNewOrderButtons.name} : تعداد پارامترها صحیح نیست!`;
-        return await sendInlineButtonRow(Config.bot.adminId, text, [])
-    }
-
-    let buttons = admin.updateNewOrderButtons({chat_id: values[1]});
-
-    return await editButtons(message, buttons);
-}
+// async function updateNewOrderButtons(message) {
+//     let values = message.text.split(';');
+//
+//     if (values.length < 2) {
+//         let text = `${updateNewOrderButtons.name} : تعداد پارامترها صحیح نیست!`;
+//         return await sendInlineButtonRow(Config.bot.adminId, text, [])
+//     }
+//
+//     let buttons = admin.updateNewOrderButtons({chat_id: values[1]});
+//
+//     return await editButtons(message, buttons);
+// }
 
 async function confirmOrder(message) {
     let values = message.text.split(';');
@@ -438,7 +438,8 @@ async function sendOrderToAdmin(message, session, orderId) {
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
     let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
 
-    let buttons = admin.updateNewOrderButtons(message, orderId);
+    let buttons = admin.getNewOrderButtons(orderId);
+
     return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
@@ -469,7 +470,9 @@ async function saveOrder(message, session, sendToAdmin = true, deleteSession = t
     }
 
     if (sendToAdmin) {
-        await sendOrderToAdmin(message, session, orderId)
+        await sendInlineButtonRow(Config.bot.adminId, `orderId: (${typeof orderId}) && ${orderId}`, [])
+
+        await sendOrderToAdmin(message, session, orderId.toString())
     }
     return sentUserOrderRes
 }

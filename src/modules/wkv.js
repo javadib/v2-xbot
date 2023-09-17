@@ -7,17 +7,17 @@ module.exports = class wKV {
         this.ns = namespace;
     }
 
-    get(key) {
+    async get(key) {
         return this.ns.get(key)
     };
 
-    put(key, value) {
+    async put(key, value) {
         let val = typeof value === 'object' ? JSON.stringify(value) : value;
 
         return this.ns.put(key, val)
     };
 
-    delete(key) {
+    async delete(key) {
         return this.ns.delete(key)
     };
 
