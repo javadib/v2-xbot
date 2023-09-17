@@ -7,6 +7,18 @@ module.exports = class wKV {
         this.ns = namespace;
     }
 
+    get(key) {
+        return this.ns.get(key)
+    };
+
+    put(key, value) {
+        return this.ns.put(key, value)
+    };
+
+    delete(key) {
+        return this.ns.delete(key)
+    };
+
     async update(key, data) {
         let ns = this.ns;
 

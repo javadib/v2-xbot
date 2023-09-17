@@ -17,7 +17,7 @@ module.exports = {
         return `💳 خرید جدید ( کارت به کارت )\n\n▫️آیدی کاربر: ${tUser.id}\n⚡️ نام کاربری: @${tUser.username}\n💰مبلغ پرداختی: ${sPlan.totalPrice.toLocaleString()} تومان\n✏️ نام سرویس: ${sPlan.name}\n\n    \nاطلاعات واریز: ${message.text}`
     },
 
-    savedOrderMessage(sPlan, sPayment) {
+    savedOrderText(sPlan, sPayment) {
         let msg = `〽️ نام پلن: ${sPlan?.name}\n\n💎 قیمت پنل : ${sPlan?.totalPrice.toLocaleString()} \n\n💳 پرداخت: ${sPayment.title}\n\n\n\n`;
 
         msg += this.meta.templates.savedOrder.text;
@@ -29,6 +29,16 @@ module.exports = {
         let msg = `〽️ نام پلن: ${sPlan?.name}\n➖➖➖➖➖➖➖\n💎 قیمت پنل : ${sPlan?.totalPrice.toLocaleString()} \n➖➖➖➖➖➖➖\n\n♻️ عزیزم یه تصویر از فیش واریزی یا شماره پیگیری -  ساعت پرداخت - نام پرداخت کننده رو در یک پیام برام ارسال کن :\n\n🔰  ${sPayment?.appKey} - ${sPayment?.appSecret} \n\n✅ بعد از اینکه پرداختت تایید شد ( لینک سرور ) به صورت خودکار از طریق همین ربات برات ارسال میشه!`
 
         return msg;
+    },
+
+    getId(chatId) {
+        return `order:${chatId}:${new Date().toUnixTIme()}`;
+    },
+
+    parseId(id) {
+        let [model, userChatId, unixTime] = id.split(':')
+
+        return {model, userChatId, unixTime};
     }
 
 }

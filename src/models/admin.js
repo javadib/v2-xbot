@@ -16,7 +16,7 @@ module.exports = {
         ];
     },
 
-    newAccMessage(plan, userUrl, config) {
+    newAccountText(plan, userUrl, config) {
         let {tlgSupport} = config.bot;
         let {name: planName, maxDays, volume} = plan;
 
@@ -26,7 +26,7 @@ module.exports = {
 
 🎚حجم بسته: ${volume} گیگ
 
-🕓 زمان: ${maxDays} روز
+⏳ زمان: ${maxDays} روز
 
 
 برای مشاهده جزئیات لینک زیر رو باز کنید:

@@ -1,5 +1,10 @@
 "use strict";
 
+Date.prototype.toUnixTIme = function () {
+    return Math.floor(this / 1000);
+}
+
+
 const Config = require('./config');
 const Plan = require('./models/plan');
 const Server = require('./models/server');
@@ -240,8 +245,9 @@ async function onCallbackQuery(callbackQuery) {
  * https://core.telegram.org/bots/api#message
  */
 async function onMessage(message, options = {}) {
+    let id = message.chat.id;
     try {
-        let usrSession = JSON.parse(await db.get(message.chat.id)) || {};
+        let usrSession = JSON.parse(await db.get(id)) || {};
         let values = message.text.split(';');
 
         switch (values[0].toLowerCase()) {
@@ -255,28 +261,24 @@ async function onMessage(message, options = {}) {
             case Plan.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let server = {[Server.seed.cmd]: values[1]};
-                    await wkv.update(message.chat.id, server);
+                    usrSession = await wkv.update(id, server);
                 }
 
                 return await sendPlans(message);
             case Payment.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let plan = {[Plan.seed.cmd]: values[1]};
-                    await wkv.update( message.chat.id, plan)
+                    usrSession = await wkv.update(id, plan)
                 }
 
                 return await sendPayments(message, "show_invoice");
             case "show_invoice".toLowerCase():
-                let newData;
                 if (values[1]) {
                     let payment = {[Payment.seed.cmd]: values[1]};
-                    newData = await wkv.update( message.chat.id, payment);
+                    usrSession = await wkv.update(id, payment);
                 }
 
-
-                let result = await sendInvoice(message, newData || usrSession, "show_invoice");
-
-                return result;
+                return await sendInvoice(message, usrSession, "show_invoice");
             case "confirm_order".toLowerCase():
                 //TODO: admin ACL
                 return await confirmOrder(message, usrSession);
@@ -289,8 +291,7 @@ async function onMessage(message, options = {}) {
                 return await sendStartMessage(message);
         }
 
-        let result = !usrSession.isLast ? await sendStartMessage(message) :
-            await saveOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
+        let result = usrSession.isLast === true ? await saveOrder(message, usrSession) : await sendStartMessage(message);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
 
@@ -299,7 +300,7 @@ async function onMessage(message, options = {}) {
 
     } catch (e) {
         let text = e?.stack || e?.message || JSON.stringify(e);
-        await sendInlineButtonRow(message.chat.id, text, [])
+        await sendInlineButtonRow(id, text, [])
     }
 }
 
@@ -363,30 +364,31 @@ async function updateNewOrderButtons(message, options = {}) {
 
 async function confirmOrder(message) {
     let values = message.text.split(';');
-    let userChatId = values[1];
+    let orderId = values[1];
 
-    if (!userChatId) {
-        let text = `یوزر برای ارسال پیام پیدا نشد!`;
+    if (!orderId) {
+        let text = `سفارشی برای پردازش پیدا نشد!`;
         return await sendInlineButtonRow(Config.bot.adminId, text, [])
     }
 
-    let usrSession = JSON.parse(await db.get(userChatId)) || {};
-    let sPlan = Plan.findById(usrSession[Plan.seed.cmd])?.model;
-    let sServer = Server.findById(usrSession[Server.seed.cmd])?.model;
+    let {model, userChatId, unixTime} = Order.parseId(orderId);
+
+    let order = JSON.parse(await db.get(orderId)) || {};
+    let sPlan = Plan.findById(order[Plan.seed.cmd])?.model;
+    let sServer = Server.findById(order[Server.seed.cmd])?.model;
 
     let opt = {}
-    if (usrSession.invoiceMessageId) {
-        opt = {method: 'editMessageText', messageId: usrSession.invoiceMessageId};
+    if (order.invoiceMessageId) {
+        opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
     }
 
     let hiddify = new Hiddify();
-    let res = await hiddify.createAccount(sPlan, sServer, userChatId);
+    let res = await hiddify.createAccount(sPlan, sServer, orderId);
     let data = await res.json();
 
-    let text1 = admin.newAccMessage(sPlan, data.userUrl, Config)
-    let response = await sendInlineButtonRow(userChatId, text1, [
+    let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
+    let response = await sendInlineButtonRow(userChatId, accountText, [
         [{text: "🏡 صفحه اصلی", callback_data: "/start"}]
-
     ], opt);
 
 
@@ -398,7 +400,7 @@ async function confirmOrder(message) {
 }
 
 
-async function rejectOrder(message, session, options = {}) {
+async function rejectOrder(message) {
     let values = message.text.split(';');
 
     if (values.length < 2) {
@@ -406,21 +408,21 @@ async function rejectOrder(message, session, options = {}) {
     }
 
     let opt = {}
-    let userChatId = values[1];
-    let usrSession = JSON.parse(await db.get(userChatId)) || {};
-    if (usrSession.invoiceMessageId) {
-        opt = {method: 'editMessageText', messageId: usrSession.invoiceMessageId};
+    let orderId = values[1];
+    let order = JSON.parse(await db.get(orderId)) || {};
+    if (order.invoiceMessageId) {
+        opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
     }
 
-    await wkv.update( userChatId, {rejected: true});
+    await wkv.update(orderId, {rejected: true});
 
 
     //TODO: fixme
     // Delete user session
-    await db.delete(userChatId)
+    // await db.delete(orderId)
 
     let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
-    let response = await sendInlineButtonRow(Number(userChatId), text, [
+    let response = await sendInlineButtonRow(Number(orderId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
         ]
@@ -434,7 +436,7 @@ async function rejectOrder(message, session, options = {}) {
     return response
 }
 
-async function sendOrderToAdmin(message, session) {
+async function sendOrderToAdmin(message, session, newOrder) {
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
     let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
@@ -443,25 +445,36 @@ async function sendOrderToAdmin(message, session) {
     return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
-async function saveOrder(message, session) {
+async function saveOrder(message, session, sendToAdmin = true, deleteSession = true) {
     let chatId = message.chat.id || message.chat_id;
+
+    //Send msg to user
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
-
-
-    let msg = Order.savedOrderMessage(sPlan, sPayment);
-    let res = await sendInlineButtonRow(chatId, msg, [
+    let msg = Order.savedOrderText(sPlan, sPayment);
+    let sentUserOrderRes = await sendInlineButtonRow(chatId, msg, [
         // [{text: "پیگیری", callback_data: "send_message"}]
     ]);
-    let data = await res.json() || {};
 
-    await wkv.update( chatId, {
+    let data = await sentUserOrderRes.json() || {};
+    let newOrder = Object.assign({}, session, {
+        userId: chatId,
         invoiceMessageId: data.result?.message_id,
         payProofText: message.text
     })
 
+    let orderId = Order.getId(chatId);
+    // await sendInlineButtonRow(chatId, `savedNewOrder ${orderId}: ${JSON.stringify(newOrder)} `, []);
+    let savedNewOrder = await wkv.put(orderId, JSON.stringify(newOrder))
 
-    return res
+    if (deleteSession) {
+        await wkv.delete(chatId)
+    }
+
+    if (sendToAdmin) {
+        await sendOrderToAdmin(message, session, savedNewOrder)
+    }
+    return sentUserOrderRes
 }
 
 async function sendInvoice(message, session, nextCmd) {
@@ -471,7 +484,7 @@ async function sendInvoice(message, session, nextCmd) {
 
     let msg = Order.reviewInvoice(sPlan, sPayment);
 
-    await wkv.update( chatId, {lastCmd: "show_invoice", isLast: true});
+    await wkv.update(chatId, {lastCmd: "show_invoice", isLast: true});
 
     return await sendInlineButtonRow(chatId, msg, [
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
