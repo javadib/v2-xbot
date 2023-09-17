@@ -5,7 +5,7 @@ const Plan = require('./models/plan');
 const Server = require('./models/server');
 const Order = require('./models/order');
 const Payment = require('./models/payment');
-const wkv = require('./wkv');
+const wkv = require('./modules/wkv');
 const admin = require("./models/admin");
 
 const TOKEN = Config.bot.token
@@ -233,9 +233,6 @@ async function onCallbackQuery(callbackQuery) {
     return answerCallbackQuery(callbackQuery.id, 'Button press acknowledged!')
 }
 
-function transform(template, model) {
-    return new Function('return `' + template + '`;').call(model);
-}
 
 /**
  * Handle incoming Message
