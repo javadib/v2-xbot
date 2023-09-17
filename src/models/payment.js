@@ -31,7 +31,7 @@ module.exports = {
     },
 
     findById(id) {
-      return this.seed.data.find(p => p.model.id == id)
+      return this.seed.data.find(p => p.model.id === Number(id))
     }
 }
 

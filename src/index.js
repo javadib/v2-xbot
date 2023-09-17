@@ -272,7 +272,6 @@ async function onMessage(message, options = {}) {
 
                 // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
                 let result = await sendInvoice(message, usrSession, "show_invoice");
-                await wkv.update(db, message.chat.id, {lastCmd: "show_invoice", isLast: true});
 
                 return result;
             case "confirm_order".toLowerCase():
@@ -415,7 +414,7 @@ async function rejectOrder(message, session, options = {}) {
     let opt = {}
     let userChatId = values[1];
     let usrSession = JSON.parse(await db.get(userChatId)) || {};
-    if (usrSession.invoiceMessageId) {
+    if (usrSession.invoiceMessageId) {g
         opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
     }
 
@@ -435,10 +434,7 @@ async function rejectOrder(message, session, options = {}) {
 
     await editButtons(message, [
         [{text: "سفارش رد شده!", callback_data: Config.commands.silentButton}],
-        [{
-            text: "↩️ بازنگری",
-            callback_data: `${Config.commands.updateNewOrderButtons};${userChatId}`
-        }],
+        // [{text: "↩️ بازنگری", callback_data: `${Config.commands.updateNewOrderButtons};${userChatId}`}],
     ])
 
     return response
@@ -480,6 +476,8 @@ async function sendInvoice(message, session, nextCmd) {
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
 
     let msg = Order.reviewInvoice(sPlan, sPayment);
+
+    await wkv.update(db, chatId, {lastCmd: "show_invoice", isLast: true});
 
     return await sendInlineButtonRow(chatId, msg, [
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
