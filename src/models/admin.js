@@ -20,7 +20,7 @@ module.exports = {
         let {tlgSupport} = config.bot;
         let {name: planName, maxDays, volume} = plan;
 
-        let result = `😍 سفارش جدید شما
+        let result = `😍 سفارش شما تائید شد
 
 📦 نام بسته:  ${planName}
 
