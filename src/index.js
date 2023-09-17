@@ -5,8 +5,10 @@ const Plan = require('./models/plan');
 const Server = require('./models/server');
 const Order = require('./models/order');
 const Payment = require('./models/payment');
-const wkv = require('./modules/wkv');
 const admin = require("./models/admin");
+
+const wkv = require('./modules/wkv');
+const Hiddify = require("./modules/hiddify");
 
 const TOKEN = Config.bot.token
 const WEBHOOK = Config.bot.webHook
@@ -277,7 +279,7 @@ async function onMessage(message, options = {}) {
 
                 return result;
             case "confirm_order".toLowerCase():
-                //TODO: admin ACL check
+                //TODO: admin ACL
                 return await confirmOrder(message, usrSession);
             case "reject_order".toLowerCase():
                 //TODO: admin ACL check
@@ -349,24 +351,6 @@ function sendPlans(message) {
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
-async function confirmOrder(message, session) {
-    return Promise.resolve();
-
-
-
-    let chatId = message.chat.id;
-    let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
-    let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
-
-    await wkv.update(db, message.chat_id, {payProofMessageId: message.message_id})
-
-    let msg = Order.savedOrder(sPlan, sPayment);
-
-    return await sendInlineButtonRow(chatId, msg, [
-        // [{text: "پیگیری", callback_data: "send_message"}]
-    ])
-}
-
 async function editButtons(message, buttons = []) {
     return await sendInlineButtonRow(message.chat_id || message.chat.id, undefined, buttons, {
         method: 'editMessageReplyMarkup',
@@ -386,6 +370,26 @@ async function updateNewOrderButtons(message, options = {}) {
 
     return await editButtons(message, buttons);
 }
+
+async function confirmOrder(message) {
+    let values = message.text.split(';');
+    let userChatId = values[1];
+
+    if (!userChatId) {
+        let text = `یوزر برای ارسال پیام پیدا نشد!`;
+        return await sendInlineButtonRow(Config.bot.adminId, text, [])
+    }
+
+    let usrSession = JSON.parse(await db.get(userChatId));
+    let sPlan = Plan.findById(usrSession[Plan.seed.cmd])?.model;
+    let sServer = Server.findById(usrSession[Server.seed.cmd])?.model;
+
+    let res = await new Hiddify().createAccount(sPlan, sServer, userChatId);
+
+    let resText = res.text();
+    return await sendInlineButtonRow(Config.bot.adminId, resText, [])
+}
+
 
 async function rejectOrder(message, session, options = {}) {
     await wkv.update(db, message.chat.id, {rejected: true});
