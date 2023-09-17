@@ -386,12 +386,7 @@ async function confirmOrder(message) {
 
     let hiddify = new Hiddify();
     let res = await hiddify.createAccount(sPlan, sServer, userChatId);
-
     let data = await res.json();
-
-    let text2 = `res.status: ${res.status} && ::: ${res.statusText}`;
-    await sendInlineButtonRow(Config.bot.adminId, text2, [])
-
 
     await editButtons(message, [
         [{text: "سفارش ارسال شده!", callback_data: Config.commands.silentButton}]
@@ -448,13 +443,21 @@ async function saveOrder(message, session) {
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
 
-    await wkv.update(db, chatId, {payProofMessageId: message.message_id})
 
     let msg = Order.savedOrder(sPlan, sPayment);
-
-    return await sendInlineButtonRow(chatId, msg, [
+    let res = await sendInlineButtonRow(chatId, msg, [
         // [{text: "پیگیری", callback_data: "send_message"}]
-    ])
+    ]);
+    let data = await res.json() || {};
+
+    await wkv.update(db, chatId, {
+        invoiceMessageId: data.result?.message_id,
+        payProofText: message.text,
+        payProofMessageId: message.message_id
+    })
+
+
+    return res
 }
 
 async function sendInvoice(message, session, nextCmd) {
