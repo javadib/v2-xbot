@@ -11,15 +11,7 @@ module.exports = {
                     "id": 1,
                     "title": "🇩🇪 Germany",
                     "remark": "Germany",
-                    "url": "https://exmaple.workder.dev/xxxxxxxxxxx/yyyyyyyyy/admin/",
-                }
-            },
-            {
-                model: {
-                    "id": 2,
-                    "title": "🇩🇪 Germany2",
-                    "remark": "Germany2",
-                    "url": "https://exmaple.workder.dev/xxxxxxxxxxx/yyyyyyyyy/admin/",
+                    "url": "https://gcloudp.rew0rk.online/6S8eNbo96qGXLGrQ4b8WVqW7fW7v/a3c074eb-ae34-4286-9289-542bfcc8ecdd/admin/",
                 }
             }
         ],

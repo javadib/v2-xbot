@@ -406,7 +406,6 @@ async function confirmOrder(message) {
 
 
 async function rejectOrder(message, session, options = {}) {
-    await wkv.update(db, message.chat.id, {rejected: true});
     let values = message.text.split(';');
 
     if (values.length < 2) {
@@ -419,6 +418,9 @@ async function rejectOrder(message, session, options = {}) {
     if (usrSession.invoiceMessageId) {
         opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
     }
+
+    await wkv.update(db, userChatId, {rejected: true});
+
 
     //TODO: fixme
     // Delete user session
