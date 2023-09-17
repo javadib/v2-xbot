@@ -460,8 +460,7 @@ async function saveOrder(message, session) {
 
     await wkv.update(db, chatId, {
         invoiceMessageId: data.result?.message_id,
-        payProofText: message.text,
-        payProofMessageId: message.message_id
+        payProofText: message.text
     })
 
 
