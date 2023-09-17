@@ -409,16 +409,29 @@ async function rejectOrder(message, session, options = {}) {
     await wkv.update(db, message.chat.id, {rejected: true});
     let values = message.text.split(';');
 
-
-    // let ssss = `update: ${JSON.stringify(options.update)}`;
-    // await sendInlineButtonRow(Config.bot.adminId, ssss, [])
-
     if (values.length < 2) {
         return await sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
+    let opt = {}
     let userChatId = values[1];
-    let res = await editButtons(message, [
+    let usrSession = JSON.parse(await db.get(userChatId)) || {};
+    if (usrSession.invoiceMessageId) {
+        opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
+    }
+
+    //TODO: fixme
+    // Delete user session
+    await db.delete(userChatId)
+
+    let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
+    let response = await sendInlineButtonRow(Number(userChatId), text, [
+        [
+            {text: "✨  شروع مجدد", callback_data: "/start"}
+        ]
+    ], opt);
+
+    await editButtons(message, [
         [{text: "سفارش رد شده!", callback_data: Config.commands.silentButton}],
         [{
             text: "↩️ بازنگری",
@@ -426,15 +439,7 @@ async function rejectOrder(message, session, options = {}) {
         }],
     ])
 
-    // Delete user session
-    await db.delete(userChatId)
-
-    let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
-    return await sendInlineButtonRow(Number(userChatId), text, [
-        [
-            {text: "✨  شروع مجدد", callback_data: "/start"}
-        ]
-    ])
+    return response
 }
 
 async function sendOrderToAdmin(message, session) {
