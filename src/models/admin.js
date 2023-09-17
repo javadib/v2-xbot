@@ -15,6 +15,28 @@ module.exports = {
             ]
         ];
     },
+
+    newAccMessage(plan, userUrl, config) {
+        let {tlgSupport} = config.bot;
+        let {name: planName, maxDays, volume} = plan;
+
+        let result = `😍 سفارش جدید شما
+
+📦 نام بسته:  ${planName}
+
+🎚حجم بسته: ${volume} گیگ
+
+🕓 زمان: ${maxDays} روز
+
+
+برای مشاهده جزئیات لینک زیر رو باز کنید:
+${userUrl}
+
+درصورت بروز هرگونه مشکل با پشتیبانی تماس بگیرید:
+${tlgSupport}`;
+
+        return result;
+    }
 }
 
 

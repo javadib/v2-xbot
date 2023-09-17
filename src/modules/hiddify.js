@@ -1,5 +1,7 @@
 "use strict";
 
+const index = require("../index");
+
 const Plan = require("../models/plan");
 const Server = require("../models/server");
 const Payment = require("../models/payment");
@@ -13,9 +15,9 @@ module.exports = class Hiddify {
     constructor() {
     }
 
-    async createAccount(plan, server, userChatId, comment, options = {}) {
+    async createAccount(plan, server, userChatId, comment = "", options = {}) {
         let url = new URL("/hiddify/create", this.baseUrl);
-        let name = options.customName || `${userChatId}`;
+        let name = options.customName || `${userChatId.toString()}`;
 
         let raw = {
             "baseUrl": server.url,

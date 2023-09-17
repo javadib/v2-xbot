@@ -380,14 +380,25 @@ async function confirmOrder(message) {
         return await sendInlineButtonRow(Config.bot.adminId, text, [])
     }
 
-    let usrSession = JSON.parse(await db.get(userChatId));
+    let usrSession = JSON.parse(await db.get(userChatId)) || {};
     let sPlan = Plan.findById(usrSession[Plan.seed.cmd])?.model;
     let sServer = Server.findById(usrSession[Server.seed.cmd])?.model;
 
-    let res = await new Hiddify().createAccount(sPlan, sServer, userChatId);
+    let hiddify = new Hiddify();
+    let res = await hiddify.createAccount(sPlan, sServer, userChatId);
 
-    let resText = res.text();
-    return await sendInlineButtonRow(Config.bot.adminId, resText, [])
+    let data = await res.json();
+
+    let text2 = `res.status: ${res.status} && ::: ${res.statusText}`;
+    await sendInlineButtonRow(Config.bot.adminId, text2, [])
+
+
+    await editButtons(message, [
+        [{text: "سفارش ارسال شده!", callback_data: Config.commands.silentButton}]
+    ])
+
+    let text1 = admin.newAccMessage(sPlan, data.userUrl, Config)
+    return await sendInlineButtonRow(userChatId, text1, [])
 }
 
 
@@ -433,11 +444,11 @@ async function sendOrderToAdmin(message, session) {
 }
 
 async function saveOrder(message, session) {
-    let chatId = message.chat.id;
+    let chatId = message.chat.id || message.chat_id;
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
 
-    await wkv.update(db, message.chat_id, {payProofMessageId: message.message_id})
+    await wkv.update(db, chatId, {payProofMessageId: message.message_id})
 
     let msg = Order.savedOrder(sPlan, sPayment);
 
