@@ -17,7 +17,7 @@ module.exports = {
         return `💳 خرید جدید ( کارت به کارت )\n\n▫️آیدی کاربر: ${tUser.id}\n⚡️ نام کاربری: @${tUser.username}\n💰مبلغ پرداختی: ${sPlan.totalPrice.toLocaleString()} تومان\n✏️ نام سرویس: ${sPlan.name}\n\n    \nاطلاعات واریز: ${message.text}`
     },
 
-    savedOrder(sPlan, sPayment) {
+    savedOrderMessage(sPlan, sPayment) {
         let msg = `〽️ نام پلن: ${sPlan?.name}\n\n💎 قیمت پنل : ${sPlan?.totalPrice.toLocaleString()} \n\n💳 پرداخت: ${sPayment.title}\n\n\n\n`;
 
         msg += this.meta.templates.savedOrder.text;

@@ -7,7 +7,9 @@ const Order = require('./models/order');
 const Payment = require('./models/payment');
 const admin = require("./models/admin");
 
-const wkv = require('./modules/wkv');
+const wKV = require('./modules/wkv');
+const wkv = new wKV(db);
+
 const Hiddify = require("./modules/hiddify");
 
 const TOKEN = Config.bot.token
@@ -253,25 +255,26 @@ async function onMessage(message, options = {}) {
             case Plan.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let server = {[Server.seed.cmd]: values[1]};
-                    await wkv.update(db, message.chat.id, server);
+                    await wkv.update(message.chat.id, server);
                 }
 
                 return await sendPlans(message);
             case Payment.seed.cmd.toLowerCase():
                 if (values[1]) {
                     let plan = {[Plan.seed.cmd]: values[1]};
-                    await wkv.update(db, message.chat.id, plan)
+                    await wkv.update( message.chat.id, plan)
                 }
 
                 return await sendPayments(message, "show_invoice");
             case "show_invoice".toLowerCase():
+                let newData;
                 if (values[1]) {
-                    let payment = {[Payment.seed.cmd]: values[1].toString()};
-                    await wkv.update(db, message.chat.id, payment);
+                    let payment = {[Payment.seed.cmd]: values[1]};
+                    newData = await wkv.update( message.chat.id, payment);
                 }
 
-                // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
-                let result = await sendInvoice(message, usrSession, "show_invoice");
+
+                let result = await sendInvoice(message, newData || usrSession, "show_invoice");
 
                 return result;
             case "confirm_order".toLowerCase():
@@ -286,7 +289,7 @@ async function onMessage(message, options = {}) {
                 return await sendStartMessage(message);
         }
 
-        let result = !usrSession.isLast ? await sendHelpMessage(message) :
+        let result = !usrSession.isLast ? await sendStartMessage(message) :
             await saveOrder(message, usrSession) && await sendOrderToAdmin(message, usrSession);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
@@ -301,17 +304,9 @@ async function onMessage(message, options = {}) {
 }
 
 function sendStartMessage(message) {
-    let text = 'سلااام به ربات ویزویز خوش اومدی 🫡🌸\n' +
-        '\n' +
-        'ما اینجاییم تا شما را بدون هیچ محدویتی به شبکه جهانی متصل کنیم ❤️\n' +
-        '\n' +
-        '✅ کیفیت در ساخت انواع کانکشن ها\n' +
-        '📡 برقرای امنیت در ارتباط شما\n' +
-        '☎️ پشتیبانی تا روز آخر \n';
-
-    return sendInlineButtonRow(message.chat.id, text, [
+    return sendInlineButtonRow(message.chat.id, Config.bot.welcomeMessage, [
         [{text: 'خرید اشتراک', callback_data: 'select_server'}],
-        [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
+        // [{text: 'وضعیت اشتراک', callback_data: 'status_link'}]
     ])
 }
 
@@ -340,8 +335,7 @@ function sendPlans(message) {
     let chatId = message.chat.id;
     let text = 'یکی از پلن های زیرو انتخاب کیند';
 
-    let callbackData = "select_payment";
-    let buttons = Plan.getButtons(callbackData);
+    let buttons = Plan.getButtons(Payment.seed.cmd);
 
 
     return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
@@ -382,7 +376,7 @@ async function confirmOrder(message) {
 
     let opt = {}
     if (usrSession.invoiceMessageId) {
-        opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
+        opt = {method: 'editMessageText', messageId: usrSession.invoiceMessageId};
     }
 
     let hiddify = new Hiddify();
@@ -414,11 +408,11 @@ async function rejectOrder(message, session, options = {}) {
     let opt = {}
     let userChatId = values[1];
     let usrSession = JSON.parse(await db.get(userChatId)) || {};
-    if (usrSession.invoiceMessageId) {g
-        opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
+    if (usrSession.invoiceMessageId) {
+        opt = {method: 'editMessageText', messageId: usrSession.invoiceMessageId};
     }
 
-    await wkv.update(db, userChatId, {rejected: true});
+    await wkv.update( userChatId, {rejected: true});
 
 
     //TODO: fixme
@@ -455,13 +449,13 @@ async function saveOrder(message, session) {
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
 
 
-    let msg = Order.savedOrder(sPlan, sPayment);
+    let msg = Order.savedOrderMessage(sPlan, sPayment);
     let res = await sendInlineButtonRow(chatId, msg, [
         // [{text: "پیگیری", callback_data: "send_message"}]
     ]);
     let data = await res.json() || {};
 
-    await wkv.update(db, chatId, {
+    await wkv.update( chatId, {
         invoiceMessageId: data.result?.message_id,
         payProofText: message.text
     })
@@ -477,7 +471,7 @@ async function sendInvoice(message, session, nextCmd) {
 
     let msg = Order.reviewInvoice(sPlan, sPayment);
 
-    await wkv.update(db, chatId, {lastCmd: "show_invoice", isLast: true});
+    await wkv.update( chatId, {lastCmd: "show_invoice", isLast: true});
 
     return await sendInlineButtonRow(chatId, msg, [
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],

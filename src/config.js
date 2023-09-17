@@ -12,5 +12,7 @@ module.exports = {
         adminId: 76458757,
         tlgSupport: "@BotFather",
         secret: "123456789wertyuiopxcvbnmDGHJKRTYIO", // A-Z, a-z, 0-9, _ and -
+        welcomeMessage: `به ربات v2xBot خوش آمدید 🌹
+برای استفاده از دستورات راهنما استفاده کنید یا یک پیام بفرستید 🙏`
     }
 }
