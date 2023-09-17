@@ -178,8 +178,6 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
     let method = options.method || 'sendMessage';
     let messageId = options.messageId;
 
-    console.log(`options: ${JSON.stringify(options)}`);
-
 
     let params = {
         chat_id: chatId,
@@ -194,7 +192,6 @@ async function sendInlineButtons(chatId, text, buttons, options = {}) {
     if (messageId) {
         params.message_id = messageId
     }
-
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -384,16 +381,27 @@ async function confirmOrder(message) {
     let sPlan = Plan.findById(usrSession[Plan.seed.cmd])?.model;
     let sServer = Server.findById(usrSession[Server.seed.cmd])?.model;
 
+    let opt = {}
+    if (usrSession.invoiceMessageId) {
+        opt = {method:  'editMessageText', messageId: usrSession.invoiceMessageId};
+    }
+
     let hiddify = new Hiddify();
     let res = await hiddify.createAccount(sPlan, sServer, userChatId);
     let data = await res.json();
+
+    let text1 = admin.newAccMessage(sPlan, data.userUrl, Config)
+    let response = await sendInlineButtonRow(userChatId, text1, [
+        [{text: "🏡 صفحه اصلی", callback_data: "/start"}]
+
+    ], opt);
+
 
     await editButtons(message, [
         [{text: "سفارش ارسال شده!", callback_data: Config.commands.silentButton}]
     ])
 
-    let text1 = admin.newAccMessage(sPlan, data.userUrl, Config)
-    return await sendInlineButtonRow(userChatId, text1, [])
+    return response
 }
 
 
