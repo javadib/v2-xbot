@@ -405,7 +405,10 @@ async function rejectOrder(message) {
 
     await wkv.update(orderId, {rejected: true});
 
-    let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید`;
+    let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید
+    
+    ${Config.bot.tlgSupport}
+    `;
     let response = await sendInlineButtonRow(Number(userChatId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
