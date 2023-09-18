@@ -405,9 +405,12 @@ async function rejectOrder(message) {
 
     await wkv.update(orderId, {rejected: true});
 
-    let text = `سفارش شما رد شد! برای بررسی مجدد، اطلاعات پرداخت رو برای پشتیبانی ارسال کنید  🙏
+    let text = `سفارش شما رد شد! 
+برای بررسی مجدد، اطلاعات پرداخت رو برای پشتیبانی ارسال کنید  🙏
     
     ${Config.bot.tlgSupport}
+    
+    
     `;
     let response = await sendInlineButtonRow(Number(userChatId), text, [
         [
