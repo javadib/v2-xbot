@@ -17,11 +17,10 @@ module.exports = class Hiddify {
 
     async createAccount(plan, server, userChatId, comment = "", options = {}) {
         let url = new URL("/hiddify/create", this.baseUrl);
-        let name = options.customName || `${userChatId.toString()}`;
 
         let raw = {
             "baseUrl": server.url,
-            "name": name,
+            "name": options.customName || `${userChatId}-${new Date().toUnixTIme()}`,
             "volume": plan.volume,
             "maxDays": plan.maxDays,
             "telegramId": userChatId,

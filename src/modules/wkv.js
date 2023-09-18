@@ -11,7 +11,9 @@ module.exports = class wKV {
         return this.ns.get(key)
     };
 
-    async put(key, value) {
+    // NAMESPACE.put(key, value, {expiration: secondsSinceEpoch}) :
+    // NAMESPACE.put(key, value, {expirationTtl: secondsFromNow}) :
+    async put(key, value, options = {}) {
         let val = typeof value === 'object' ? JSON.stringify(value) : value;
 
         return this.ns.put(key, val)
