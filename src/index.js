@@ -370,7 +370,7 @@ async function confirmOrder(message) {
     }
 
     let hiddify = new Hiddify();
-    let res = await hiddify.createAccount(sPlan, sServer, orderId);
+    let res = await hiddify.createAccount(sPlan, sServer, userChatId);
     let data = await res.json();
 
     let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
