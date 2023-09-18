@@ -326,7 +326,7 @@ function sendHelpMessage(message) {
 
 function sendServers(message) {
     let chatId = message.chat.id;
-    let text = 'یک لوکیشین برای اتصال، انتخاب کیند ';
+    let text = 'یک لوکیشین برای اتصال، انتخاب کنید ';
     let data = Server.getButtons(Plan.seed.cmd);
 
     return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
@@ -334,7 +334,7 @@ function sendServers(message) {
 
 function sendPlans(message) {
     let chatId = message.chat.id;
-    let text = 'یکی از پلن های زیرو انتخاب کیند';
+    let text = 'یکی از پلن های زیرو انتخاب کنید';
 
     let buttons = Plan.getButtons(Payment.seed.cmd);
 
@@ -405,7 +405,7 @@ async function rejectOrder(message) {
 
     await wkv.update(orderId, {rejected: true});
 
-    let text = `سفارش شما رد شد. لطفا با پشتیبانی تماس بگیرید
+    let text = `سفارش شما رد شد! برای بررسی مجدد، اطلاعات پرداخت رو برای پشتیبانی ارسال کنید  🙏
     
     ${Config.bot.tlgSupport}
     `;
@@ -482,7 +482,7 @@ async function sendInvoice(message, session, nextCmd) {
 
 function sendPayments(message, nextCmd) {
     let chatId = message.chat.id;
-    let text = 'یک روش پر داخت رو انتخاب کنید';
+    let text = 'یک روش پرداخت رو انتخاب کنید';
 
     let buttons = Payment.getButtons(nextCmd)
 
