@@ -10,19 +10,19 @@ module.exports = {
             {
                 model: {
                     "id": 1,
-                    "name": "30 روزه 30 گیگ",
-                    "totalPrice": 100000,
-                    "maxDays": 30,
-                    "volume": 30,
-                    "maxIp": 1,
-                    "sharedId": 0,
-                    "note": "ایاددشت برای ادمین"
+                    "name": "PLAN_NAME", // نام نمایشی به کاربر
+                    "totalPrice": 100000, // قیمت
+                    "maxDays": 30, // تعداد روز
+                    "volume": 30, // حجم به گیگ
+                    "maxIp": 1, // حداکثر تعدا آی پی
+                    "sharedId": 0, // اکانت اشتراکی
+                    "note": "ADMIN_NOTE" // یاددشت برای ادمین
                 }
             },
             {
                 model: {
                     "id": 2,
-                    "name": "60 روزه 60 گیگ",
+                    "name": "PLAN_NAME_2",
                     "totalPrice": 170000,
                     "maxDays": 60,
                     "volume": 60,
@@ -34,7 +34,7 @@ module.exports = {
             {
                 model: {
                     "id": 3,
-                    "name": "90 روزه 90 گیگ",
+                    "name": "PLAN_NAME_2",
                     "totalPrice": 250000,
                     "maxDays": 90,
                     "volume": 90,

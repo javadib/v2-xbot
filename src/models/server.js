@@ -9,9 +9,9 @@ module.exports = {
             {
                 model: {
                     "id": 1,
-                    "title": "🇩🇪 Germany",
-                    "remark": "Germany",
-                    "url": "https://gcloudp.rew0rk.online/6S8eNbo96qGXLGrQ4b8WVqW7fW7v/a3c074eb-ae34-4286-9289-542bfcc8ecdd/admin/",
+                    "title": "DISPLAY_NAME", // نام نماشی برای کاربر
+                    "remark": "REMARK_NAME", // نام نمایشی برای ساخت کانفیگ
+                    "url": "https://hiddify.com/xxxxxxxxxxxx/yyyyy-yyy-yyyy-yyyy-yyyyyyyyy/admin/",
                 }
             }
         ],

@@ -10,9 +10,8 @@ module.exports = {
                 model: {
                     "id": 1,
                     "title": "کارت به کارت",
-                    "appKey": "علی رضایی",
-                    "appSecret": "xxxx-xxxx-xxxx-xxxx",
-                    "url": ""
+                    "appKey": "OWNER_NAME", // نام کامل صاحب کارت
+                    "appSecret": "xxxx-xxxx-xxxx-xxxx"
                 }
             }
         ],
