@@ -11,7 +11,8 @@ module.exports = {
                     "id": 1,
                     "title": "کارت به کارت",
                     "appKey": "OWNER_NAME", // نام کامل صاحب کارت
-                    "appSecret": "xxxx-xxxx-xxxx-xxxx"
+                    "appSecret": "xxxx-xxxx-xxxx-xxxx",
+                    "url": ""
                 }
             }
         ],
