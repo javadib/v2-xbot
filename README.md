@@ -20,9 +20,11 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
 6) Update `Payment` model (line 227-234). Replace your card info for payment. 
 7) At the end, whole codes with default cloudflare worker code.
 8) Save and deploy worker and send a `GET ` request to `/registerWebhook` path to register webhook of your bot. make sure you see `ok` in response.
-   ![1](./docs/images/register-result.png)
-9) Done!
+#
+![1](./docs/images/register-result.png)
 
+9) Done!
+#
 
 
 
@@ -42,8 +44,8 @@ Under Development ...
 
 
 
-#
-#
+
+
 #
 
 **Buy Me a Coffee :**
