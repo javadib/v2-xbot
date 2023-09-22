@@ -7,7 +7,7 @@
 v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
 
 # Get Started
-0) Create a cloudflare worker 
+0) Create a cloudflare worker, Create a KV namespace & bind to `db` variable
 1) Download [Latest Version](https://github.com/javadib/v2-xbot/releases/latest/download/dist.zip)
 2) Extract `dist.zip` and open `index.js` with suitable editor.
 3) Edit `bot section` with your variables (line 17-28):
