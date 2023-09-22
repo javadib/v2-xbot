@@ -18,7 +18,7 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
 4) Update `Plan` models (line 43-87) that are JSON Array, and you can add/remove items. 
 5) Update `Server` models (line 115-126) that are JSON Array, and you can add/remove items.
 6) Update `Payment` model (line 227-234). Replace your card info for payment. 
-7) Replace whole codes with default cloudflare worker code.
+7) At the end, whole codes with default cloudflare worker code.
 8) Save and deploy worker and send a `GET ` request to `/registerWebhook` path to register webhook of your bot. make sure you see `ok` in response.
    ![1](./docs/images/register-result.png)
 9) Done!
