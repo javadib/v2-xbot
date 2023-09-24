@@ -13,8 +13,8 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
 3) Edit `bot section` with your variables (line 17-28):
    - Replace `YOUR_BOT_NAME` with your bot name (Optional).
    - Replace `11111111` with your Telegram Admin ID.
-   - Replace `YOUR_SUPPORT_USERNAME` with your support Telegram username (Remember put `@` at the first).
-   - Replace `@YOUR_BOT_TOKEN` with your Telegram bot token.
+   - Replace `@YOUR_SUPPORT_USERNAME` with your support Telegram username (Remember put `@` at the first).
+   - Replace `YOUR_BOT_TOKEN` with your Telegram bot token.
 4) Update `Plan` models (line 43-87) that are JSON Array, and you can add/remove items. 
 5) Update `Server` models (line 115-126) that are JSON Array, and you can add/remove items.
 6) Update `Payment` model (line 227-234). Replace your card info for payment. 
