@@ -63,6 +63,36 @@ module.exports = {
         let [model, userChatId, unixTime] = id.split(':')
 
         return {model, userChatId, unixTime};
+    },
+
+    toButtons(order, nextCmd, addBackButton = true) {
+        let data = [];
+        let text = order.accountName || order.createdAt || order.id;
+        data.push([{text: text, callback_data: `${nextCmd};${order.id}`}])
+
+        if (addBackButton) {
+            data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+        }
+
+        return data;
+    },
+
+    async gerOrders(db, chatId, options = {}) {
+        let buttons;
+        let query = `order:${chatId}:`;
+        let orders = await db.get(query) || [];
+
+
+        console.log(`options.toButtons && options.nextCmd = ${options.toButtons} &&  && ${options.nextCmd}`);
+
+        if (options.toButtons && options.nextCmd) {
+            buttons = orders.map(p => p.toButtons(p, options.nextCmd));
+        }
+
+        console.log(`buttons: ${JSON.stringify(buttons)}`);
+
+
+        return {orders, buttons};
     }
 
 }
