@@ -242,9 +242,9 @@ async function onCallbackQuery(callbackQuery) {
  * https://core.telegram.org/bots/api#message
  */
 async function onMessage(message, options = {}) {
-    let chatId = message.chat.id;
+    let chatId = message.chat_id || message.chat.id;
     try {
-        let usrSession = JSON.parse(await db.get(chatId)) || {};
+        let usrSession = JSON.parse(await wkv.get(chatId)) || {};
         let values = message.text.split(';');
 
         switch (values[0].toLowerCase()) {
@@ -288,7 +288,7 @@ async function onMessage(message, options = {}) {
                     usrSession = await wkv.update(chatId, payment);
                 }
 
-                return await showOrders(message, usrSession, "show_invoice");
+                return await showOrders(message, "show_invoice");
 
             case "confirm_order".toLowerCase():
                 //TODO: admin ACL
@@ -489,9 +489,19 @@ async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
     let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd});
 
+    // let data = await db.getWithMetadata(query);
+    await sendInlineButtonRow(Config.bot.adminId, `gerOrders: ${JSON.stringify(uOrders)}`, [])
+
+
+    let tt = `uOrders: ${JSON.stringify(uOrders)}, buttons: ${JSON.stringify(buttons)}`;
+    await sendInlineButtonRow(chatId, tt);
+
     if (buttons.length < 1) {
         let text = `هیچ سفارش ثبت شده ای ندارید!`;
-        return await sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+        return await sendInlineButtonRow(chatId, text, buttons, {
+            method: 'editMessageText',
+            messageId: message.message_id
+        })
     }
 
     let text = `لیست سفارشات تون 👇`;

@@ -1,5 +1,7 @@
 'use strict';
 
+const index = require('../index');
+
 module.exports = {
     meta: {
         cmd: 'save_order',
@@ -80,13 +82,14 @@ module.exports = {
     async gerOrders(db, chatId, options = {}) {
         let buttons;
         let query = `order:${chatId}:`;
-        let orders = await db.get(query) || [];
+        let orders = await db.list({prefix: query}) || [];
+
+        console.log(`orders: ${JSON.stringify(orders)}`);
 
 
-        console.log(`options.toButtons && options.nextCmd = ${options.toButtons} &&  && ${options.nextCmd}`);
+        buttons = orders.keys.map(p => this.toButtons(p, options.nextCmd));
 
         if (options.toButtons && options.nextCmd) {
-            buttons = orders.map(p => p.toButtons(p, options.nextCmd));
         }
 
         console.log(`buttons: ${JSON.stringify(buttons)}`);
