@@ -32,4 +32,11 @@ module.exports = {
     findById(id) {
         return this.seed.data.find(p => p.model.id == id)
     }
-}
+},
+
+
+    [
+        [{"text": "🦹‍", "callback_data": "managePlan"}],
+        [{"text": "🦹‍", "callback_data": "manageServer" }],
+        [{"text": "برگشت ↩️", "callback_data": ""}]
+    ]

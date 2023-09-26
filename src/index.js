@@ -3,6 +3,15 @@
 Date.prototype.toUnixTIme = function () {
     return Math.floor(this / 1000);
 }
+Array.prototype.ToTlgButtons = function (prevCmd, addBackButton = true) {
+    let data = this.map(p => [{text: p.textIcon || p.title, callback_data: p.id}]);
+
+    if (addBackButton) {
+        data.push([{text: "برگشت ↩️", callback_data: prevCmd}])
+    }
+
+    return data;
+}
 
 
 const Config = require('./config');
@@ -11,6 +20,9 @@ const Server = require('./models/server');
 const Order = require('./models/order');
 const Payment = require('./models/payment');
 const admin = require("./models/admin");
+const Admin = require('./models/admin');
+const Command = require('./models/command');
+
 
 const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
@@ -22,7 +34,6 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-
 
 
 /**
@@ -112,9 +123,23 @@ async function unRegisterWebhook(event) {
  */
 async function onMessage(message, options = {}) {
     let chatId = message.chat_id || message.chat.id;
+    let isAdmin = chatId === Config.bot.adminId;
+
     try {
         let usrSession = JSON.parse(await wkv.get(chatId)) || {};
         let values = message.text.split(';');
+
+        let cmd = Command.find(values[0]);
+        if (cmd) {
+            if (values[1]) {
+                let input = {[cmd.id]: values[1]};
+                usrSession = await wkv.update(chatId, input);
+            }
+
+            let buttons = Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(cmd.prevId)
+            let opt = {method: 'editMessageText', messageId: message.message_id}
+            return await TlgBot.sendInlineButtonRow(chatId, cmd.body, buttons)
+        }
 
         switch (values[0].toLowerCase()) {
             case Config.commands.silentButton.toLowerCase():
@@ -122,7 +147,7 @@ async function onMessage(message, options = {}) {
 
             case "/start".toLowerCase():
             case "/help".toLowerCase():
-                return await sendStartMessage(message);
+                return await sendStartMessage(message, isAdmin);
 
             case Server.seed.cmd.toLowerCase():
                 return await sendServers(message);
@@ -170,10 +195,12 @@ async function onMessage(message, options = {}) {
             //     return await updateNewOrderButtons(message);
 
             case "status_link".toLowerCase():
-                return await sendStartMessage(message);
+                return await sendStartMessage(message, isAdmin);
         }
 
-        let result = usrSession.isLast === true ? await saveOrder(message, usrSession) : await sendStartMessage(message);
+        let result = usrSession.isLast === true ?
+            await saveOrder(message, usrSession) :
+            await sendStartMessage(message, isAdmin);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
 
@@ -186,12 +213,23 @@ async function onMessage(message, options = {}) {
     }
 }
 
-function sendStartMessage(message) {
+function pushAdminButtons(buttons = [], isAdmin = false) {
+    if (isAdmin) {
+        buttons.push(Admin.buttons.default);
+    }
+
+    return buttons;
+}
+
+async function sendStartMessage(message, isAdmin) {
     let chatId = message.chat_id || message.chat.id;
-    return TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage, [
+    let buttonRow = [
         [{text: 'خرید اشتراک', callback_data: 'select_server'}],
         [{text: 'سوابق خرید', callback_data: 'order_history'}]
-    ])
+    ];
+
+    buttonRow = pushAdminButtons(buttonRow, isAdmin)
+    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage, buttonRow)
 }
 
 
@@ -375,7 +413,10 @@ async function showOrders(message, nextCmd) {
     }
 
     let text = `لیست سفارشات تون 👇`;
-    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {
+        method: 'editMessageText',
+        messageId: message.message_id
+    })
 }
 
 async function sendInvoice(message, session, nextCmd) {

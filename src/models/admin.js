@@ -1,10 +1,16 @@
 'use strict';
 
 const Config = require('../config');
+const Command = require('./command');
 
 module.exports = {
-    meta: {
-        command: {}
+    buttons: {
+        default: [{text: Command.list.manage.textIcon, callback_data: Command.list.manage.id}],
+        buttons: [
+            [{text: Command.list.managePlan.textIcon, callback_data: Command.list.managePlan.id}],
+            [{text: Command.list.manageServer.textIcon, callback_data: Command.list.manageServer.id}],
+            [{text: Command.list.managePayment.textIcon, callback_data: Command.list.managePayment.id}],
+        ]
     },
 
     getNewOrderButtons(id) {
