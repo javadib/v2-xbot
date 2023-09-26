@@ -16,10 +16,13 @@ const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
 
 const Hiddify = require("./modules/hiddify");
+const Telegram = require("./modules/telegram");
 
-const TOKEN = Config.bot.token
 const WEBHOOK = Config.bot.webHook
-const SECRET = Config.bot.secret
+const SECRET = Config.bot.secret;
+
+const TlgBot = new Telegram(Config.bot.token);
+
 
 
 /**
@@ -89,7 +92,7 @@ async function onUpdate(update) {
 async function registerWebhook(event, requestUrl, suffix, secret) {
     // https://core.telegram.org/bots/api#setwebhook
     const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`
-    const r = await (await fetch(apiUrl('setWebhook', {url: webhookUrl, secret_token: secret}))).json()
+    const r = await (await fetch(TlgBot.apiUrl('setWebhook', {url: webhookUrl, secret_token: secret}))).json()
     return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
 
@@ -98,142 +101,8 @@ async function registerWebhook(event, requestUrl, suffix, secret) {
  * https://core.telegram.org/bots/api#setwebhook
  */
 async function unRegisterWebhook(event) {
-    const r = await (await fetch(apiUrl('setWebhook', {url: ''}))).json()
+    const r = await (await fetch(TlgBot.apiUrl('setWebhook', {url: ''}))).json()
     return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
-}
-
-/**
- * Return url to telegram api, optionally with parameters added
- */
-function apiUrl2(methodName) {
-    let botUrl = `https://api.telegram.org/bot${TOKEN}/${methodName}`;
-
-    return botUrl;
-}
-
-function apiUrl(methodName, params = null) {
-    let botUrl = `https://api.telegram.org/bot${TOKEN}/${methodName}`;
-    let query = ''
-
-    if (params) {
-        query = '?' + new URLSearchParams(params).toString()
-    }
-
-    return `${botUrl}${query}`
-}
-
-/**
- * Send plain text message
- * https://core.telegram.org/bots/api#sendmessage
- */
-async function sendPlainText(chatId, text) {
-    return (await fetch(apiUrl('sendMessage', {
-        chat_id: chatId,
-        text
-    }))).json()
-}
-
-/**
- * Send text message formatted with MarkdownV2-style
- * Keep in mind that any markdown characters _*[]()~`>#+-=|{}.! that
- * are not part of your formatting must be escaped. Incorrectly escaped
- * messages will not be sent. See escapeMarkdown()
- * https://core.telegram.org/bots/api#sendmessage
- */
-async function sendMarkdownV2Text(chatId, text) {
-    return (await fetch(apiUrl('sendMessage', {
-        chat_id: chatId,
-        text,
-        parse_mode: 'MarkdownV2'
-    }))).json()
-}
-
-/**
- * Escape string for use in MarkdownV2-style text
- * if `except` is provided, it should be a string of characters to not escape
- * https://core.telegram.org/bots/api#markdownv2-style
- */
-function escapeMarkdown(str, except = '') {
-    const all = '_*[]()~`>#+-=|{}.!\\'.split('').filter(c => !except.includes(c))
-    const regExSpecial = '^$*+?.()|{}[]\\'
-    const regEx = new RegExp('[' + all.map(c => (regExSpecial.includes(c) ? '\\' + c : c)).join('') + ']', 'gim')
-    return str.replace(regEx, '\\$&')
-}
-
-/**
- * Send a message with a single button
- * `button` must be an button-object like `{ text: 'Button', callback_data: 'data'}`
- * https://core.telegram.org/bots/api#sendmessage
- */
-async function sendInlineButton(chatId, text, button) {
-    return sendInlineButtonRow(chatId, text, [button])
-}
-
-/**
- * Send a message with buttons, `buttonRow` must be an array of button objects
- * https://core.telegram.org/bots/api#sendmessage
- */
-async function sendInlineButtonRow(chatId, text, buttonRow, options = {}) {
-    return sendInlineButtons(chatId, text, buttonRow, options)
-}
-
-/**
- * Send a message with buttons, `buttons` must be an array of arrays of button objects
- * https://core.telegram.org/bots/api#sendmessage
- */
-async function sendInlineButtons(chatId, text, buttons, options = {}) {
-    let method = options.method || 'sendMessage';
-    let messageId = options.messageId;
-
-    let params = {
-        chat_id: chatId,
-        reply_markup: {inline_keyboard: buttons}
-    };
-
-    if (text) {
-        params.text = text
-    }
-
-    if (messageId) {
-        params.message_id = messageId
-    }
-
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-
-    const requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: JSON.stringify(params)
-    };
-
-    // console.log(`before reuest: ${JSON.stringify(requestOptions)}`);
-    let botUrl = apiUrl2(method);
-    return fetch(botUrl, requestOptions)
-}
-
-/**
- * Answer callback query (inline button press)
- * This stops the loading indicator on the button and optionally shows a message
- * https://core.telegram.org/bots/api#answercallbackquery
- */
-async function answerCallbackQuery(callbackQueryId, text = null) {
-    const data = {
-        callback_query_id: callbackQueryId
-    }
-    if (text) {
-        data.text = text
-    }
-    return (await fetch(apiUrl('answerCallbackQuery', data))).json()
-}
-
-/**
- * Handle incoming callback_query (inline button press)
- * https://core.telegram.org/bots/api#message
- */
-async function onCallbackQuery(callbackQuery) {
-    await sendMarkdownV2Text(callbackQuery.message.chat.id, escapeMarkdown(`You pressed the button with data=\`${callbackQuery.data}\``, '`'))
-    return answerCallbackQuery(callbackQuery.id, 'Button press acknowledged!')
 }
 
 
@@ -313,12 +182,13 @@ async function onMessage(message, options = {}) {
 
     } catch (e) {
         let text = e?.stack || e?.message || JSON.stringify(e);
-        await sendInlineButtonRow(chatId, text, [])
+        await TlgBot.sendInlineButtonRow(chatId, text, [])
     }
 }
 
 function sendStartMessage(message) {
-    return sendInlineButtonRow(message.chat.id, Config.bot.welcomeMessage, [
+    let chatId = message.chat_id || message.chat.id;
+    return TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage, [
         [{text: 'خرید اشتراک', callback_data: 'select_server'}],
         [{text: 'سوابق خرید', callback_data: 'order_history'}]
     ])
@@ -330,7 +200,7 @@ function sendServers(message) {
     let text = 'یک لوکیشین برای اتصال، انتخاب کنید ';
     let data = Server.getButtons(Plan.seed.cmd);
 
-    return sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
+    return TlgBot.sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
 }
 
 function sendPlans(message) {
@@ -340,11 +210,11 @@ function sendPlans(message) {
     let buttons = Plan.getButtons(Payment.seed.cmd);
 
 
-    return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+    return TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 async function editButtons(message, buttons = []) {
-    return await sendInlineButtonRow(message.chat_id || message.chat.id, undefined, buttons, {
+    return await TlgBot.sendInlineButtonRow(message.chat_id || message.chat.id, undefined, buttons, {
         method: 'editMessageReplyMarkup',
         messageId: message.message_id
     });
@@ -357,12 +227,12 @@ async function confirmOrder(message) {
 
     if (!orderId) {
         let text = `سفارشی برای پردازش پیدا نشد!`;
-        return await sendInlineButtonRow(Config.bot.adminId, text, [])
+        return await TlgBot.sendInlineButtonRow(Config.bot.adminId, text, [])
     }
 
     let {model, userChatId, unixTime} = Order.parseId(orderId);
 
-    let order = JSON.parse(await db.get(orderId)) || {};
+    let order = JSON.parse(await wkv.get(orderId)) || {};
     let sPlan = Plan.findById(order[Plan.seed.cmd])?.model;
     let sServer = Server.findById(order[Server.seed.cmd])?.model;
 
@@ -382,7 +252,7 @@ async function confirmOrder(message) {
         لطفا این موضوع رو پیگیری کنید  🙏`;
         text += `\n\n ${await res.text()}`;
 
-        return await sendInlineButtonRow(Config.bot.adminId, text, [], {
+        return await TlgBot.sendInlineButtonRow(Config.bot.adminId, text, [], {
             method: 'sendMessage', reply_to_message_id: chatId
         });
     }
@@ -390,7 +260,7 @@ async function confirmOrder(message) {
     await wkv.update(orderId, {accountName: accOpt.customName})
 
     let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
-    let response = await sendInlineButtonRow(userChatId, accountText, [
+    let response = await TlgBot.sendInlineButtonRow(userChatId, accountText, [
         [{text: "🏡 صفحه اصلی", callback_data: "/start"}]
     ], opt);
 
@@ -407,14 +277,14 @@ async function rejectOrder(message) {
     let values = message.text.split(';');
 
     if (values.length < 2) {
-        return await sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
+        return await TlgBot.sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
     let opt = {}
     let orderId = values[1];
     let {model, userChatId, unixTime} = Order.parseId(orderId);
 
-    let order = JSON.parse(await db.get(orderId)) || {};
+    let order = JSON.parse(await wkv.get(orderId)) || {};
     if (order.invoiceMessageId) {
         opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
     }
@@ -428,7 +298,7 @@ async function rejectOrder(message) {
     
     
     `;
-    let response = await sendInlineButtonRow(Number(userChatId), text, [
+    let response = await TlgBot.sendInlineButtonRow(Number(userChatId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
         ]
@@ -449,7 +319,7 @@ async function sendOrderToAdmin(message, session, orderId) {
 
     let buttons = admin.getNewOrderButtons(orderId);
 
-    return await sendInlineButtonRow(Config.bot.adminId, msg, buttons)
+    return await TlgBot.sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
 async function saveOrder(message, session, sendToAdmin = true, deleteSession = true) {
@@ -459,7 +329,7 @@ async function saveOrder(message, session, sendToAdmin = true, deleteSession = t
     let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
     let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
     let msg = Order.savedOrderText(sPlan, sPayment);
-    let sentUserOrderRes = await sendInlineButtonRow(chatId, msg, [
+    let sentUserOrderRes = await TlgBot.sendInlineButtonRow(chatId, msg, [
         // [{text: "پیگیری", callback_data: "send_message"}]
     ]);
 
@@ -490,22 +360,22 @@ async function showOrders(message, nextCmd) {
     let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd});
 
     // let data = await db.getWithMetadata(query);
-    await sendInlineButtonRow(Config.bot.adminId, `gerOrders: ${JSON.stringify(uOrders)}`, [])
+    await TlgBot.sendInlineButtonRow(Config.bot.adminId, `gerOrders: ${JSON.stringify(uOrders)}`, [])
 
 
     let tt = `uOrders: ${JSON.stringify(uOrders)}, buttons: ${JSON.stringify(buttons)}`;
-    await sendInlineButtonRow(chatId, tt);
+    await TlgBot.sendInlineButtonRow(chatId, tt);
 
     if (buttons.length < 1) {
         let text = `هیچ سفارش ثبت شده ای ندارید!`;
-        return await sendInlineButtonRow(chatId, text, buttons, {
+        return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {
             method: 'editMessageText',
             messageId: message.message_id
         })
     }
 
     let text = `لیست سفارشات تون 👇`;
-    return await sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 async function sendInvoice(message, session, nextCmd) {
@@ -517,7 +387,7 @@ async function sendInvoice(message, session, nextCmd) {
 
     await wkv.update(chatId, {lastCmd: "show_invoice", isLast: true});
 
-    return await sendInlineButtonRow(chatId, msg, [
+    return await TlgBot.sendInlineButtonRow(chatId, msg, [
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
         [{text: "برگشت ↩️", callback_data: Payment.seed.cmd}]
     ], {method: 'editMessageText', messageId: message.message_id})
@@ -529,7 +399,7 @@ function sendPayments(message, nextCmd) {
 
     let buttons = Payment.getButtons(nextCmd)
 
-    return sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
+    return TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 
