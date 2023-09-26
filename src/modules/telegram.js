@@ -1,7 +1,12 @@
 "use strict";
 
-module.exports = class Hiddify {
+const Config = require('../config');
+
+module.exports = class Telegram {
     _token;
+
+    static instance =  new Telegram(Config.bot.token);
+
 
     constructor(token) {
         this._token = token;
@@ -103,5 +108,9 @@ module.exports = class Hiddify {
             data.text = text
         }
         return (await fetch(this.apiUrl('answerCallbackQuery', data))).json()
+    }
+
+    async sendToAdmin(text, buttonRow = [], options = {}) {
+        return this.sendInlineButtonRow(Config.bot.adminId, text, buttonRow, options)
     }
 }

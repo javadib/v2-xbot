@@ -51,6 +51,27 @@ module.exports = {
             newPlan: [{text: Command.list.newPlan.textIcon(), callback_data: Command.list.newPlan.id}],
         }
     },
+    dbKey: "plan",
+
+    async seedData(db, options = {}) {
+        await db.update(this.dbKey, this.seed.data.map(p => p.model))
+    },
+
+    async findAll(db, options = {}) {
+        let {addBackButton = true, unitPrice = "تومان"} = options;
+
+        let data = await db.get("plan", {type: "json"}) || []
+
+        if (options.forAdmin == true) {
+            data.push(this.seed.adminButtons.newPlan)
+        }
+
+        if (addBackButton) {
+            data.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
+        }
+
+        return data;
+    },
 
     getButtons(nextCmd, options = {}) {
         let {addBackButton = true, unitPrice = "تومان"} = options;
@@ -75,6 +96,10 @@ module.exports = {
 
     findById(id) {
         return this.seed.data.find(p => p.model.id == id)
+    },
+
+    async savePlan(input) {
+
     }
 }
 

@@ -3,7 +3,7 @@
 Date.prototype.toUnixTIme = function () {
     return Math.floor(this / 1000);
 }
-Array.prototype.ToTlgButtons = function (prevCmd, addBackButton = true) {
+Array.prototype.ToTlgButtons = async function (prevCmd, addBackButton = true) {
     let data = this.map(p => [{text: p.textIcon() || p.title, callback_data: p.id}]);
 
     if (addBackButton) {
@@ -35,6 +35,11 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
+
+
+// Seed Sample Data
+// Plan.seedData(wkv).then(p => TlgBot.sendToAdmin('booted....', []).then(console.log))
+
 
 
 /**
@@ -118,12 +123,13 @@ async function unRegisterWebhook(event) {
 }
 
 
-function buildButtons(cmd, isAdmin) {
-    let prevCmd = cmd.prevId || "/start";
+async function buildButtons(cmd, isAdmin, options = {}) {
+    let prevCmd = cmd.prevId;
+    let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
 
     return Array.isArray(cmd.buttons) ?
-        Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
-        DataModel[cmd.buttons].getButtons(cmd.nextId, {forAdmin: isAdmin, prevCmd: cmd.prevId});
+        await Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
+        await DataModel[cmd.buttons].findAll(wkv, opt);
 }
 
 /**
@@ -137,9 +143,9 @@ async function onMessage(message, options = {}) {
     try {
         let usrSession = JSON.parse(await wkv.get(chatId)) || {};
         let [cmdId, input] = message.text.split(';');
-        // let values = message.text.split(';');
 
         // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
+
 
         let cmd = Command.find(cmdId);
         if (cmd) {
@@ -148,8 +154,8 @@ async function onMessage(message, options = {}) {
                 usrSession = await wkv.update(chatId, input);
             }
 
-            let buttons = buildButtons(cmd, isAdmin);
-            // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${JSON.stringify(buttons)}`, [])
+            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot});
+            // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${buttons}`, [])
 
 
             let opt = {method: 'editMessageText', messageId: message.message_id}
