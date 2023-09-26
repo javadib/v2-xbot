@@ -23,6 +23,7 @@ const admin = require("./models/admin");
 const Admin = require('./models/admin');
 const Command = require('./models/command');
 
+const DataModel = {Plan, Order, Payment, Server};
 
 const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
@@ -117,6 +118,14 @@ async function unRegisterWebhook(event) {
 }
 
 
+function buildButtons(cmd, isAdmin) {
+    let prevCmd = cmd.prevId || "/start";
+
+    return Array.isArray(cmd.buttons) ?
+        Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
+        DataModel[cmd.buttons].getButtons(cmd.nextId, {forAdmin: isAdmin});
+}
+
 /**
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
@@ -127,21 +136,28 @@ async function onMessage(message, options = {}) {
 
     try {
         let usrSession = JSON.parse(await wkv.get(chatId)) || {};
-        let values = message.text.split(';');
+        let [cmdId, input] = message.text.split(';');
+        // let values = message.text.split(';');
 
-        let cmd = Command.find(values[0]);
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
+
+        let cmd = Command.find(cmdId);
         if (cmd) {
-            if (values[1]) {
-                let input = {[cmd.id]: values[1]};
+            if (input) {
+                let input = {[cmd.id]: input};
                 usrSession = await wkv.update(chatId, input);
             }
 
-            let buttons = Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(cmd.prevId)
+            let buttons = buildButtons(cmd, isAdmin);
+            // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${JSON.stringify(buttons)}`, [])
+
+
             let opt = {method: 'editMessageText', messageId: message.message_id}
-            return await TlgBot.sendInlineButtonRow(chatId, cmd.body, buttons)
+            let text1 = `${cmd.body}\n${cmd.helpText}`;
+            return await TlgBot.sendInlineButtonRow(chatId, text1, buttons)
         }
 
-        switch (values[0].toLowerCase()) {
+        switch (cmdId.toLowerCase()) {
             case Config.commands.silentButton.toLowerCase():
                 return await Promise.resolve();
 
@@ -153,32 +169,32 @@ async function onMessage(message, options = {}) {
                 return await sendServers(message);
 
             case Plan.seed.cmd.toLowerCase():
-                if (values[1]) {
-                    let server = {[Server.seed.cmd]: values[1]};
+                if (input) {
+                    let server = {[Server.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, server);
                 }
 
                 return await sendPlans(message);
 
             case Payment.seed.cmd.toLowerCase():
-                if (values[1]) {
-                    let plan = {[Plan.seed.cmd]: values[1]};
+                if (input) {
+                    let plan = {[Plan.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, plan)
                 }
 
                 return await sendPayments(message, "show_invoice");
 
             case "show_invoice".toLowerCase():
-                if (values[1]) {
-                    let payment = {[Payment.seed.cmd]: values[1]};
+                if (input) {
+                    let payment = {[Payment.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, payment);
                 }
 
                 return await sendInvoice(message, usrSession, "show_invoice");
 
             case "order_history".toLowerCase():
-                if (values[1]) {
-                    let payment = {[Payment.seed.cmd]: values[1]};
+                if (input) {
+                    let payment = {[Payment.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, payment);
                 }
 

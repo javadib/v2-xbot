@@ -1,5 +1,8 @@
 'use strict';
 
+const Command = require("./command");
+
+
 module.exports = {
     seed: {
         name: 'seed plans',
@@ -44,13 +47,23 @@ module.exports = {
                 }
             },
         ],
+        adminButtons: {
+            newPlan: [{text: Command.list.newPlan.textIcon, callback_data: Command.list.newPlan.id}],
+        }
     },
 
     getButtons(nextCmd, options = {}) {
         let {addBackButton = true, unitPrice = "تومان"} = options;
         let data = this.seed.data.map(p => {
-            return [{text: `${p.model.name} - ${p.model.totalPrice.toLocaleString()} ${unitPrice}`, callback_data: `${nextCmd};${p.model.id}`}]
+            return [{
+                text: `${p.model.name} - ${p.model.totalPrice.toLocaleString()} ${unitPrice}`,
+                callback_data: `${nextCmd};${p.model.id}`
+            }]
         })
+
+        if (options.forAdmin == true) {
+            data.push(this.seed.adminButtons.newPlan)
+        }
 
         if (addBackButton) {
             data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])

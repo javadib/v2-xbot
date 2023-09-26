@@ -4,42 +4,64 @@ const Config = require('../config');
 
 module.exports = {
     list: {
-        "manage":{
+        "manage": {
             "prevId": "/start",
             "id": "manage",
             "title": "مدیریت",
-            "icon": `🦹‍♂️`,
-            "textIcon": `مدیریت 🦹‍♂️`,
+            "icon": `👨‍💼`,
+            "textIcon": `مدیریت 👨‍💼`,
             "tags": [],
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postEndpoint": '',
             "postFunc": '',
             "nextId": "",
             "buttons": ["managePlan", "manageServer", "managePayment"]
         },
-        "managePlan":{
+        "managePlan": {
             "id": "managePlan",
             "title": "مدیریت پلن ها",
             "icon": `📦`,
             "textIcon": `📦 مدیریت پلن ها`,
             "tags": [],
             "asButton": true,
-            "body": ` به بخش مدیریت خوش آمدید 🌹
-یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
+            "body": `📦 روی یک پلن ضربه بزنید یا دکمه ثبت جدید برای انتخاب کنید:`,
             "successText": ``,
             "helpText": ``,
-            "postEndpoint": '',
             "postFunc": '',
             "firstCommand": true,
             "lastCommand": false,
             "nextId": "",
-            "commandIds": ["user.myConfig", "user.newOrder"]
+            "buttons": "Plan"
         },
-        "manageServer":{
+        "newPlan": {
+            "id": "newPlan",
+            "title": "ساخت پلن جدید",
+            "icon": `📦 ➕`,
+            "textIcon": `📦 ➕ ساخت پلن جدید`,
+            "tags": [],
+            "asButton": true,
+            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+
+name: ${"نام نمایشی".replace(" ", "_")}
+totalPrice: ${"قیمت".replace(" ", "_")} 
+maxDays: ${"تعداد روز".replace(" ", "_")} 
+volume: ${"حجم به گیگ".replace(" ", "_")} 
+
+`,
+            "successText": ``,
+            "helpText": `
+توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
+
+            "postFunc": '',
+            "firstCommand": true,
+            "lastCommand": false,
+            "nextId": "",
+            "buttons": []
+        },
+        "manageServer": {
             "id": "manageServer",
             "title": "مدیریت سرورها",
             "icon": `💻`,
@@ -50,14 +72,13 @@ module.exports = {
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postEndpoint": '',
             "postFunc": '',
             "firstCommand": true,
             "lastCommand": false,
             "nextId": "",
-            "commandIds": ["user.myConfig", "user.newOrder"]
+            "buttons": ["user.myConfig", "user.newOrder"]
         },
-        "managePayment":{
+        "managePayment": {
             "id": "managePayment",
             "title": "مدیریت",
             "icon": `🦹‍`,
@@ -68,12 +89,11 @@ module.exports = {
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postEndpoint": '',
             "postFunc": '',
             "firstCommand": true,
             "lastCommand": false,
             "nextId": "",
-            "commandIds": ["user.myConfig", "user.newOrder"]
+            "buttons": ["user.myConfig", "user.newOrder"]
         }
     },
 
@@ -85,7 +105,7 @@ module.exports = {
         let result = ids.map(id => this.list[id]).filter(p => p).filter(filter) || [];
 
         return result;
-    }
+    },
 
 }
 
