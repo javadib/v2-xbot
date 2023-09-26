@@ -5,11 +5,11 @@ const Command = require('./command');
 
 module.exports = {
     buttons: {
-        default: [{text: Command.list.manage.textIcon, callback_data: Command.list.manage.id}],
+        default: [{text: Command.list.manage.textIcon(), callback_data: Command.list.manage.id}],
         buttons: [
-            [{text: Command.list.managePlan.textIcon, callback_data: Command.list.managePlan.id}],
-            [{text: Command.list.manageServer.textIcon, callback_data: Command.list.manageServer.id}],
-            [{text: Command.list.managePayment.textIcon, callback_data: Command.list.managePayment.id}],
+            [{text: Command.list.managePlan.textIcon(), callback_data: Command.list.managePlan.id}],
+            [{text: Command.list.manageServer.textIcon(), callback_data: Command.list.manageServer.id}],
+            [{text: Command.list.managePayment.textIcon(), callback_data: Command.list.managePayment.id}],
         ]
     },
 

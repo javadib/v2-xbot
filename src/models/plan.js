@@ -48,7 +48,7 @@ module.exports = {
             },
         ],
         adminButtons: {
-            newPlan: [{text: Command.list.newPlan.textIcon, callback_data: Command.list.newPlan.id}],
+            newPlan: [{text: Command.list.newPlan.textIcon(), callback_data: Command.list.newPlan.id}],
         }
     },
 

@@ -4,7 +4,7 @@ Date.prototype.toUnixTIme = function () {
     return Math.floor(this / 1000);
 }
 Array.prototype.ToTlgButtons = function (prevCmd, addBackButton = true) {
-    let data = this.map(p => [{text: p.textIcon || p.title, callback_data: p.id}]);
+    let data = this.map(p => [{text: p.textIcon() || p.title, callback_data: p.id}]);
 
     if (addBackButton) {
         data.push([{text: "برگشت ↩️", callback_data: prevCmd}])
@@ -140,6 +140,7 @@ async function onMessage(message, options = {}) {
         // let values = message.text.split(';');
 
         // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - textIcon: ${Command.list.manage.textIcon()}`, [])
 
         let cmd = Command.find(cmdId);
         if (cmd) {

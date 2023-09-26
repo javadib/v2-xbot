@@ -9,7 +9,7 @@ module.exports = {
             "id": "manage",
             "title": "مدیریت",
             "icon": `👨‍💼`,
-            "textIcon": `مدیریت 👨‍💼`,
+            textIcon () {return `${this.icon} ${this.title}`},
             "tags": [],
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
@@ -24,7 +24,7 @@ module.exports = {
             "id": "managePlan",
             "title": "مدیریت پلن ها",
             "icon": `📦`,
-            "textIcon": `📦 مدیریت پلن ها`,
+            textIcon () {return `${this.icon} ${this.title}`},
             "tags": [],
             "asButton": true,
             "body": `📦 روی یک پلن ضربه بزنید یا دکمه ثبت جدید برای انتخاب کنید:`,
@@ -40,15 +40,15 @@ module.exports = {
             "id": "newPlan",
             "title": "ساخت پلن جدید",
             "icon": `📦 ➕`,
-            "textIcon": `📦 ➕ ساخت پلن جدید`,
+            textIcon () {return `${this.icon} ${this.title}`},
             "tags": [],
             "asButton": true,
             "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
 
-name: ${"نام نمایشی".replace(" ", "_")}
-totalPrice: ${"قیمت".replace(" ", "_")} 
-maxDays: ${"تعداد روز".replace(" ", "_")} 
-volume: ${"حجم به گیگ".replace(" ", "_")} 
+name: ${"نام نمایشی".replaceAll(" ", "_")}
+totalPrice: ${"قیمت".replaceAll(" ", "_")} 
+maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
+volume: ${"حجم به گیگ".replaceAll(" ", "_")} 
 
 `,
             "successText": ``,
@@ -65,7 +65,7 @@ volume: ${"حجم به گیگ".replace(" ", "_")}
             "id": "manageServer",
             "title": "مدیریت سرورها",
             "icon": `💻`,
-            "textIcon": `💻 مدیریت سرورها`,
+            textIcon () {return `${this.icon} ${this.title}`},
             "tags": [],
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
@@ -82,7 +82,7 @@ volume: ${"حجم به گیگ".replace(" ", "_")}
             "id": "managePayment",
             "title": "مدیریت",
             "icon": `🦹‍`,
-            "textIcon": `🦹 مدیریت`,
+            textIcon () {return `${this.icon} ${this.title}`},
             "tags": [],
             "asButton": false,
             "body": ` به بخش مدیریت خوش آمدید 🌹
