@@ -21,6 +21,7 @@ module.exports = {
             "buttons": ["managePlan", "manageServer", "managePayment"]
         },
         "managePlan": {
+            "prevId": "manage",
             "id": "managePlan",
             "title": "مدیریت پلن ها",
             "icon": `📦`,
@@ -37,6 +38,7 @@ module.exports = {
             "buttons": "Plan"
         },
         "newPlan": {
+            "prevId": "managePlan",
             "id": "newPlan",
             "title": "ساخت پلن جدید",
             "icon": `📦 ➕`,
@@ -48,13 +50,11 @@ module.exports = {
 name: ${"نام نمایشی".replaceAll(" ", "_")}
 totalPrice: ${"قیمت".replaceAll(" ", "_")} 
 maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
-volume: ${"حجم به گیگ".replaceAll(" ", "_")} 
-
+volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 `,
             "successText": ``,
             "helpText": `
 توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
-
             "postFunc": '',
             "firstCommand": true,
             "lastCommand": false,

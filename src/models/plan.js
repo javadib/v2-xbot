@@ -66,7 +66,7 @@ module.exports = {
         }
 
         if (addBackButton) {
-            data.push([{text: "برگشت ↩️", callback_data: this.seed.prev_cmd}])
+            data.push([{text: "برگشت ↩️", callback_data: options.prevCmd || this.seed.prev_cmd}])
 
         }
 

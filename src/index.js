@@ -123,7 +123,7 @@ function buildButtons(cmd, isAdmin) {
 
     return Array.isArray(cmd.buttons) ?
         Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
-        DataModel[cmd.buttons].getButtons(cmd.nextId, {forAdmin: isAdmin});
+        DataModel[cmd.buttons].getButtons(cmd.nextId, {forAdmin: isAdmin, prevCmd: cmd.prevId});
 }
 
 /**
@@ -140,7 +140,6 @@ async function onMessage(message, options = {}) {
         // let values = message.text.split(';');
 
         // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - textIcon: ${Command.list.manage.textIcon()}`, [])
 
         let cmd = Command.find(cmdId);
         if (cmd) {
@@ -155,7 +154,7 @@ async function onMessage(message, options = {}) {
 
             let opt = {method: 'editMessageText', messageId: message.message_id}
             let text1 = `${cmd.body}\n${cmd.helpText}`;
-            return await TlgBot.sendInlineButtonRow(chatId, text1, buttons)
+            return await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt)
         }
 
         switch (cmdId.toLowerCase()) {
