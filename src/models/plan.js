@@ -98,8 +98,39 @@ module.exports = {
         return this.seed.data.find(p => p.model.id == id)
     },
 
-    async savePlan(input) {
+    async parseInput(input, options = {}) {
+        let result  = input.split('\n').reduce( (pv, cv, i) => {
+            let split = cv.split(':');
 
+            if (split.length < 1) return pv;
+
+            pv[split[0]] = split[1].trim();
+
+            return pv;
+        }, {})
+
+        await options.pub.sendToAdmin(`result: ${JSON.stringify(result)}`);
+
+        return result;
+    },
+
+    async create({db, input}, options = {}) {
+        let data = await this.parseInput(input, options);
+
+        // await options.pub.sendToAdmin(`after input: ${typeof data}`);
+
+        await db.update(this.dbKey, {
+            "id": new Date().toUnixTIme(),
+            "name": data.name,
+            "totalPrice": Number(data.totalPrice),
+            "maxDays": Number(data.maxDays),
+            "volume": Number(data.volume),
+            "maxIp": 1,
+            "sharedId": 0,
+            "note": "ADMIN_NOTE"
+        });
+
+        return data;
     }
 }
 

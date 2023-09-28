@@ -41,7 +41,6 @@ const TlgBot = new Telegram(Config.bot.token);
 // Plan.seedData(wkv).then(p => TlgBot.sendToAdmin('booted....', []).then(console.log))
 
 
-
 /**
  * Wait for requests to the worker
  */
@@ -141,27 +140,11 @@ async function onMessage(message, options = {}) {
     let isAdmin = chatId === Config.bot.adminId;
 
     try {
-        let usrSession = JSON.parse(await wkv.get(chatId)) || {};
+        let usrSession = await wkv.get(chatId, {type: "json"}) || {};
         let [cmdId, input] = message.text.split(';');
+        let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
-
-
-        let cmd = Command.find(cmdId);
-        if (cmd) {
-            if (input) {
-                let input = {[cmd.id]: input};
-                usrSession = await wkv.update(chatId, input);
-            }
-
-            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot});
-            // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${buttons}`, [])
-
-
-            let opt = {method: 'editMessageText', messageId: message.message_id}
-            let text1 = `${cmd.body}\n${cmd.helpText}`;
-            return await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt)
-        }
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
             case Config.commands.silentButton.toLowerCase():
@@ -219,6 +202,58 @@ async function onMessage(message, options = {}) {
             case "status_link".toLowerCase():
                 return await sendStartMessage(message, isAdmin);
         }
+
+        let cmd = Command.find(cmdId);
+        let currentCmd = Command.find(usrSession.currentCmd);
+
+        await TlgBot.sendInlineButtonRow(chatId, `cmd: ${cmd?.id} && currentCmd: ${currentCmd?.id}`, [])
+
+        if (cmd) {
+            if (input) {
+                let input = {[cmd.id]: input};
+                usrSession = await wkv.update(chatId, input);
+            }
+
+            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot});
+            // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${buttons}`, [])
+
+            let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+            let text1 = `${cmd.body}\n${cmd.helpText}`;
+            let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
+
+            if (cmd.nextId) {
+                await wkv.update(chatId, {currentCmd: cmd.nextId})
+            }
+
+            return response
+        }
+
+        if (currentCmd) {
+            if (currentCmd.preFunc) {
+                let {model, func} = currentCmd.preFuncData();
+
+                // let text2 = `{model, func}: ${model} ${func} && ${typeof  DataModel[model]?.[func]}`;
+                // await TlgBot.sendInlineButtonRow(chatId, text2, [])
+
+
+                let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
+            }
+
+            let {text, buttons} = Command.buildCmdInfo();
+            let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+            let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
+
+            if (currentCmd.nextId) {
+                await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            }
+
+
+
+            return sentMessageRes
+
+        }
+
+
 
         let result = usrSession.isLast === true ?
             await saveOrder(message, usrSession) :

@@ -9,14 +9,16 @@ module.exports = {
             "id": "manage",
             "title": "مدیریت",
             "icon": `👨‍💼`,
-            textIcon () {return `${this.icon} ${this.title}`},
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
             "tags": [],
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postFunc": '',
+            "preFunc": '',
             "nextId": "",
             "buttons": ["managePlan", "manageServer", "managePayment"]
         },
@@ -25,15 +27,15 @@ module.exports = {
             "id": "managePlan",
             "title": "مدیریت پلن ها",
             "icon": `📦`,
-            textIcon () {return `${this.icon} ${this.title}`},
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
             "tags": [],
             "asButton": true,
             "body": `📦 روی یک پلن ضربه بزنید یا دکمه ثبت جدید برای انتخاب کنید:`,
             "successText": ``,
             "helpText": ``,
-            "postFunc": '',
-            "firstCommand": true,
-            "lastCommand": false,
+            "preFunc": '',
             "nextId": "",
             "buttons": "Plan"
         },
@@ -42,7 +44,9 @@ module.exports = {
             "id": "newPlan",
             "title": "ساخت پلن جدید",
             "icon": `📦 ➕`,
-            textIcon () {return `${this.icon} ${this.title}`},
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
             "tags": [],
             "asButton": true,
             "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
@@ -55,26 +59,45 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "successText": ``,
             "helpText": `
 توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
-            "postFunc": '',
-            "firstCommand": true,
-            "lastCommand": false,
-            "nextId": "",
+            "preFunc": "",
+            "nextId": "createPlan",
             "buttons": []
+        },
+        "createPlan": {
+            "id": "createPlan",
+            // "title": "ساخت پلن جدید",
+            // "icon": `📦 ➕`,
+            // textIcon() {
+            //     return `${this.icon} ${this.title}`
+            // },
+            "tags": [],
+            "asButton": false,
+            "body": `✅ پلن شما با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Plan;create",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": "Plan"
         },
         "manageServer": {
             "id": "manageServer",
             "title": "مدیریت سرورها",
             "icon": `💻`,
-            textIcon () {return `${this.icon} ${this.title}`},
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
             "tags": [],
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postFunc": '',
-            "firstCommand": true,
-            "lastCommand": false,
+            "preFunc": '',
             "nextId": "",
             "buttons": ["user.myConfig", "user.newOrder"]
         },
@@ -82,22 +105,38 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "id": "managePayment",
             "title": "مدیریت",
             "icon": `🦹‍`,
-            textIcon () {return `${this.icon} ${this.title}`},
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
             "tags": [],
             "asButton": false,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
             "successText": ``,
             "helpText": ``,
-            "postFunc": '',
-            "firstCommand": true,
-            "lastCommand": false,
+            "preFunc": '',
             "nextId": "",
             "buttons": ["user.myConfig", "user.newOrder"]
         }
     },
 
-    find(id) {
+    async buildButtons2(db, cmd, DataModel, isAdmin, options = {}) {
+        let prevCmd = cmd.prevId;
+        let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
+
+        return Array.isArray(cmd.buttons) ?
+            await this.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
+            await DataModel[cmd.buttons].findAll(db, opt);
+    },
+
+    async buildCmdInfo(db, cmd, DataModel, isAdmin, options = {}) {
+        let text = `${cmd.body}\n${cmd.helpText}`;
+        let buttons = await this.buildButtons2(db, cmd, DataModel, isAdmin, options);
+
+        return {text, buttons}
+    },
+
+        find(id) {
         return this.list[id]
     },
 
@@ -106,6 +145,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 
         return result;
     },
+
 
 }
 
