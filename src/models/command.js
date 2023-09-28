@@ -122,7 +122,6 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
     },
 
     async buildButtons2(db, cmd, DataModel, isAdmin, options = {}) {
-        let prevCmd = cmd.prevId;
         let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
 
         return Array.isArray(cmd.buttons) ?
