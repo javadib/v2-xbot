@@ -82,8 +82,8 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 
                 return {model, func}
             },
-            "nextId": "managePlan",
-            "buttons": "Plan"
+            "nextId": "",
+            "buttons": ["managePlan", "manage"]
         },
         "manageServer": {
             "id": "manageServer",
@@ -126,7 +126,10 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
 
         return Array.isArray(cmd.buttons) ?
-            await this.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
+            await this.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons({
+                idKey: "id",
+                textKey: "textIcon"
+            }, undefined) :
             await DataModel[cmd.buttons].findAll(db, opt);
     },
 

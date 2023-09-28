@@ -12,7 +12,7 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
         return [{text: text, callback_data: p[idKey]?.toString()}];
     }) || [];
 
-    if (addBackButton) {
+    if (prevCmd && addBackButton) {
         data.push([{text: "برگشت ↩️", callback_data: prevCmd}])
     }
 
@@ -248,6 +248,12 @@ async function onMessage(message, options = {}) {
             }
 
             let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {});
+
+            // let text2 = `buildCmdInfo text: ${text} && buttons: ${JSON.stringify(buttons)}`;
+            // await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
+
+
+
             let opt = {method: 'editMessageText', messageId: message.message_id}
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, {});
 

@@ -65,9 +65,6 @@ module.exports = {
         let data = await db.get(this.dbKey, {type: "json"}) || []
         let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
 
-        await options.pub?.sendToAdmin(`plan result: ${JSON.stringify(result)}`);
-
-
         if (options.forAdmin == true) {
             result.push(this.seed.adminButtons.newPlan)
         }
