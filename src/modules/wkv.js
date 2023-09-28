@@ -23,12 +23,12 @@ module.exports = class wKV {
     // NAMESPACE.put(key, value, {expiration: secondsSinceEpoch}) :
     // NAMESPACE.put(key, value, {expirationTtl: secondsFromNow}) :
     async put(key, value, options = {}) {
-        let val = typeof value === 'object' ? JSON.stringify(value) : value;
-        let metadata = options.metadata || value;
+        // let val = typeof value === 'object' ? JSON.stringify(value) : value;
+        let metadata = options.metadata;
 
-        return this.ns.put(key, JSON.stringify(value), {
+        return metadata ? this.ns.put(key, JSON.stringify(value), {
             metadata: metadata,
-        })
+        }) : this.ns.put(key, JSON.stringify(value))
     };
 
     async delete(key) {

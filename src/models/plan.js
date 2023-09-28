@@ -52,6 +52,8 @@ module.exports = {
         }
     },
     dbKey: "plan",
+    idKey: "id",
+    textKey: "name",
 
     async seedData(db, options = {}) {
         await db.update(this.dbKey, this.seed.data.map(p => p.model))
@@ -60,17 +62,21 @@ module.exports = {
     async findAll(db, options = {}) {
         let {addBackButton = true, unitPrice = "تومان"} = options;
 
-        let data = await db.get("plan", {type: "json"}) || []
+        let data = await db.get(this.dbKey, {type: "json"}) || []
+        let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
+
+        await options.pub?.sendToAdmin(`plan result: ${JSON.stringify(result)}`);
+
 
         if (options.forAdmin == true) {
-            data.push(this.seed.adminButtons.newPlan)
+            result.push(this.seed.adminButtons.newPlan)
         }
 
         if (addBackButton) {
-            data.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
+            result.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
         }
 
-        return data;
+        return result;
     },
 
     getButtons(nextCmd, options = {}) {
@@ -99,7 +105,7 @@ module.exports = {
     },
 
     async parseInput(input, options = {}) {
-        let result  = input.split('\n').reduce( (pv, cv, i) => {
+        let result = input.split('\n').reduce((pv, cv, i) => {
             let split = cv.split(':');
 
             if (split.length < 1) return pv;
@@ -109,17 +115,18 @@ module.exports = {
             return pv;
         }, {})
 
-        await options.pub.sendToAdmin(`result: ${JSON.stringify(result)}`);
-
         return result;
     },
 
     async create({db, input}, options = {}) {
         let data = await this.parseInput(input, options);
-
         // await options.pub.sendToAdmin(`after input: ${typeof data}`);
 
-        await db.update(this.dbKey, {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+
+        await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+
+        let newData = {
             "id": new Date().toUnixTIme(),
             "name": data.name,
             "totalPrice": Number(data.totalPrice),
@@ -128,9 +135,12 @@ module.exports = {
             "maxIp": 1,
             "sharedId": 0,
             "note": "ADMIN_NOTE"
-        });
+        };
+        oldData.push(newData);
 
-        return data;
+        await db.put(this.dbKey, oldData);
+
+        return oldData;
     }
 }
 

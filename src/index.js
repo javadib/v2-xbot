@@ -3,8 +3,14 @@
 Date.prototype.toUnixTIme = function () {
     return Math.floor(this / 1000);
 }
-Array.prototype.ToTlgButtons = async function (prevCmd, addBackButton = true) {
-    let data = this.map(p => [{text: p.textIcon() || p.title, callback_data: p.id}]);
+
+Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBackButton = true) {
+    let data = this.map(p => {
+        // let text = (typeof p.textIcon === 'function' ? p.textIcon() : p.textIcon) || p.title;
+        let text = p.textIcon?.call(p) || p[textKey];
+
+        return [{text: text, callback_data: p[idKey]}];
+    }) || [];
 
     if (addBackButton) {
         data.push([{text: "برگشت ↩️", callback_data: prevCmd}])
@@ -127,9 +133,13 @@ async function buildButtons(cmd, isAdmin, options = {}) {
     let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
 
     return Array.isArray(cmd.buttons) ?
-        await Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons(prevCmd) :
+        await Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons({
+            textKey: "textIcon",
+            idKey: "id"
+        }, prevCmd) :
         await DataModel[cmd.buttons].findAll(wkv, opt);
 }
+
 
 /**
  * Handle incoming Message
@@ -144,7 +154,7 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
             case Config.commands.silentButton.toLowerCase():
@@ -206,13 +216,15 @@ async function onMessage(message, options = {}) {
         let cmd = Command.find(cmdId);
         let currentCmd = Command.find(usrSession.currentCmd);
 
-        await TlgBot.sendInlineButtonRow(chatId, `cmd: ${cmd?.id} && currentCmd: ${currentCmd?.id}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `cmd: ${cmd?.id} && currentCmd: ${currentCmd?.id}`, [])
 
         if (cmd) {
             if (input) {
                 let input = {[cmd.id]: input};
                 usrSession = await wkv.update(chatId, input);
             }
+
+            //TODO: Exec preFUnc
 
             let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot});
             // await TlgBot.sendInlineButtonRow(chatId, `buttons: ${buttons}`, [])
@@ -239,7 +251,12 @@ async function onMessage(message, options = {}) {
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
 
-            let {text, buttons} = Command.buildCmdInfo();
+            let {text, buttons} = Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {});
+
+            let text2 = `buildCmdInfo text: ${text} && buttons: ${JSON.stringify(buttons)}`;
+            await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
+
+
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
@@ -249,7 +266,6 @@ async function onMessage(message, options = {}) {
 
             return sentMessageRes
         }
-
 
 
         let result = usrSession.isLast === true ?

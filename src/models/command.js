@@ -136,7 +136,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         return {text, buttons}
     },
 
-        find(id) {
+    find(id) {
         return this.list[id]
     },
 
