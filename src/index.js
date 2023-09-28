@@ -247,10 +247,7 @@ async function onMessage(message, options = {}) {
                 await wkv.update(chatId, {currentCmd: currentCmd.nextId})
             }
 
-
-
             return sentMessageRes
-
         }
 
 
@@ -260,7 +257,6 @@ async function onMessage(message, options = {}) {
             await sendStartMessage(message, isAdmin);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
-
 
         return result;
 
