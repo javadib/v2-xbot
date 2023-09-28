@@ -9,7 +9,7 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
         // let text = (typeof p.textIcon === 'function' ? p.textIcon() : p.textIcon) || p.title;
         let text = p.textIcon?.call(p) || p[textKey];
 
-        return [{text: text, callback_data: p[idKey]}];
+        return [{text: text, callback_data: p[idKey]?.toString()}];
     }) || [];
 
     if (addBackButton) {
@@ -244,21 +244,12 @@ async function onMessage(message, options = {}) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
 
-                // let text2 = `{model, func}: ${model} ${func} && ${typeof  DataModel[model]?.[func]}`;
-                // await TlgBot.sendInlineButtonRow(chatId, text2, [])
-
-
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
 
-            let {text, buttons} = Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {});
-
-            let text2 = `buildCmdInfo text: ${text} && buttons: ${JSON.stringify(buttons)}`;
-            await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
-
-
-            let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-            let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
+            let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {});
+            let opt = {method: 'editMessageText', messageId: message.message_id}
+            let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, {});
 
             if (currentCmd.nextId) {
                 await wkv.update(chatId, {currentCmd: currentCmd.nextId})

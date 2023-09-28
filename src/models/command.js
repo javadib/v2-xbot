@@ -64,6 +64,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "buttons": []
         },
         "createPlan": {
+            "prevId": "managePlan",
             "id": "createPlan",
             // "title": "ساخت پلن جدید",
             // "icon": `📦 ➕`,
@@ -81,7 +82,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 
                 return {model, func}
             },
-            "nextId": "",
+            "nextId": "managePlan",
             "buttons": "Plan"
         },
         "manageServer": {

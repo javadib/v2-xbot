@@ -94,7 +94,6 @@ module.exports = {
 
         if (addBackButton) {
             data.push([{text: "برگشت ↩️", callback_data: options.prevCmd || this.seed.prev_cmd}])
-
         }
 
         return data;
@@ -124,7 +123,7 @@ module.exports = {
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 
-        await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
 
         let newData = {
             "id": new Date().toUnixTIme(),
