@@ -128,6 +128,10 @@ async function unRegisterWebhook(event) {
 }
 
 
+function buildBack(cbData, text, options = {}) {
+    return [{text: text || "برگشت ↩️", callback_data: cbData}];
+}
+
 async function buildButtons(cmd, isAdmin, options = {}) {
     let prevCmd = cmd.prevId;
     let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
@@ -139,7 +143,6 @@ async function buildButtons(cmd, isAdmin, options = {}) {
         }, prevCmd) :
         await DataModel[cmd.buttons].findAll(wkv, opt);
 }
-
 
 /**
  * Handle incoming Message
@@ -154,20 +157,20 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - values: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
-            case Config.commands.silentButton.toLowerCase():
+            case  cmdId.match(/\/silentButton/)?.input:
                 return await Promise.resolve();
 
-            case "/start".toLowerCase():
-            case "/help".toLowerCase():
+            case cmdId.match(/\/start/)?.input :
+            case cmdId.match(/\/help/)?.input :
                 return await sendStartMessage(message, isAdmin);
 
-            case Server.seed.cmd.toLowerCase():
+            case cmdId.match(/select_server/)?.input:
                 return await sendServers(message);
 
-            case Plan.seed.cmd.toLowerCase():
+            case cmdId.match(/select_plan/)?.input:
                 if (input) {
                     let server = {[Server.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, server);
@@ -175,7 +178,7 @@ async function onMessage(message, options = {}) {
 
                 return await sendPlans(message);
 
-            case Payment.seed.cmd.toLowerCase():
+            case cmdId.match(/select_payment/)?.input:
                 if (input) {
                     let plan = {[Plan.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, plan)
@@ -183,7 +186,7 @@ async function onMessage(message, options = {}) {
 
                 return await sendPayments(message, "show_invoice");
 
-            case "show_invoice".toLowerCase():
+            case cmdId.match(/show_invoice/)?.input :
                 if (input) {
                     let payment = {[Payment.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, payment);
@@ -191,7 +194,7 @@ async function onMessage(message, options = {}) {
 
                 return await sendInvoice(message, usrSession, "show_invoice");
 
-            case "order_history".toLowerCase():
+            case cmdId.match(/order_history/)?.input :
                 if (input) {
                     let payment = {[Payment.seed.cmd]: input};
                     usrSession = await wkv.update(chatId, payment);
@@ -199,24 +202,48 @@ async function onMessage(message, options = {}) {
 
                 return await showOrders(message, "show_invoice");
 
-            case "confirm_order".toLowerCase():
+            case cmdId.match(/confirm_order/)?.input:
                 //TODO: admin ACL
                 return await confirmOrder(message, usrSession);
 
-            case "reject_order".toLowerCase():
+            case cmdId.match(/reject_order/)?.input:
                 //TODO: admin ACL check
                 return await rejectOrder(message, usrSession, options)
             // case Config.commands.updateNewOrderButtons.toLowerCase():
             //     return await updateNewOrderButtons(message);
 
-            case "status_link".toLowerCase():
+            case cmdId.match(/status_link/)?.input :
                 return await sendStartMessage(message, isAdmin);
+
+            case cmdId.match(/plan\/(.?)*\/details/)?.input:
+                let [model, id, action] = cmdId.split('/')
+                let obj = await Plan.findByIdDb(wkv, id);
+                let actions = Plan.seed.adminButtons.actions(obj?.id).push(buildBack("/start"));
+
+                let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+                let text2 = `پلن ${obj.name}
+                یکی از عملیات مربوطه روانتخاب کنید:`;
+                return await TlgBot.sendToAdmin(text2, actions, opt)
+
+            case cmdId.match(/plan\/(.?)*\/update/)?.input:
+                var [Model, id] = cmdId.split('/')
+                var uObj = await Plan.findByIdDb(wkv, uId);
+                var uActions = Plan.seed.adminButtons.actions(uObj?.id);
+
+                var opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+                var text2 = `پلن ${obj.name}
+                یکی از عملیات مربوطه روانتخاب کنید:`;
+                return await TlgBot.sendToAdmin(text2, actions, opt)
+
+            case cmdId.match(/plan\/.*\/delete/)?.input:
+                return await TlgBot.sendToAdmin(cmdId, [])
+            // return await sendStartMessage(message, isAdmin);
         }
 
         let cmd = Command.find(cmdId);
         let currentCmd = Command.find(usrSession.currentCmd);
 
-        // await TlgBot.sendInlineButtonRow(chatId, `cmd: ${cmd?.id} && currentCmd: ${currentCmd?.id}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `cmd: ${JSON.stringify(cmd?.id)} && currentCmd: ${currentCmd?.id}`, [])
 
         if (cmd) {
             if (input) {
@@ -253,13 +280,12 @@ async function onMessage(message, options = {}) {
             // await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
 
 
-
             let opt = {method: 'editMessageText', messageId: message.message_id}
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, {});
 
-            if (currentCmd.nextId) {
-                await wkv.update(chatId, {currentCmd: currentCmd.nextId})
-            }
+            // if (currentCmd.nextId) {
+            await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            // }
 
             return sentMessageRes
         }

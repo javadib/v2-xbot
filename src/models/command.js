@@ -85,6 +85,56 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "nextId": "",
             "buttons": ["managePlan", "manage"]
         },
+
+        "confirmDelete": {
+            "prevId": "confirmDelete",
+            "id": "confirmDelete",
+            "title": "ساخت پلن جدید",
+            "icon": `📦 ➕`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "tags": [],
+            "asButton": true,
+            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+
+name: ${"نام نمایشی".replaceAll(" ", "_")}
+totalPrice: ${"قیمت".replaceAll(" ", "_")} 
+maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
+volume: ${"حجم به گیگ".replaceAll(" ", "_")}
+`,
+            "successText": ``,
+            "helpText": `
+توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
+            "preFunc": "",
+            "nextId": "createPlan",
+            "buttons": []
+        },
+        "deleteItem": {
+            "prevId": "managePlan",
+            "id": "newPlan",
+            "title": "ساخت پلن جدید",
+            "icon": `📦 ➕`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "tags": [],
+            "asButton": true,
+            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+
+name: ${"نام نمایشی".replaceAll(" ", "_")}
+totalPrice: ${"قیمت".replaceAll(" ", "_")} 
+maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
+volume: ${"حجم به گیگ".replaceAll(" ", "_")}
+`,
+            "successText": ``,
+            "helpText": `
+توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
+            "preFunc": "",
+            "nextId": "createPlan",
+            "buttons": []
+        },
+
         "manageServer": {
             "id": "manageServer",
             "title": "مدیریت سرورها",
@@ -119,6 +169,10 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "nextId": "",
             "buttons": ["user.myConfig", "user.newOrder"]
         }
+    },
+
+    ToTlgButtons(text, cbData, options = {}) {
+        return {text: text, callback_data: cbData.toString()};
     },
 
     async buildButtons2(db, cmd, DataModel, isAdmin, options = {}) {

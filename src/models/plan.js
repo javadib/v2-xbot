@@ -4,6 +4,9 @@ const Command = require("./command");
 
 
 module.exports = {
+    dbKey: "plan",
+    idKey: "id",
+    textKey: "name",
     seed: {
         name: 'seed plans',
         cmd: 'select_plan',
@@ -49,11 +52,17 @@ module.exports = {
         ],
         adminButtons: {
             newPlan: [{text: Command.list.newPlan.textIcon(), callback_data: Command.list.newPlan.id}],
+            actions(id) {
+                return [
+                    [
+                        {text: `✏️ ویرایش`, callback_data: `${this.dbKey}/${id}/update`},
+                        {text: `❌ حذف آیتم`, callback_data: `${this.dbKey}/${id}/delete`}
+                    ]
+                ]
+            },
         }
     },
-    dbKey: "plan",
-    idKey: "id",
-    textKey: "name",
+
 
     async seedData(db, options = {}) {
         await db.update(this.dbKey, this.seed.data.map(p => p.model))
@@ -63,7 +72,9 @@ module.exports = {
         let {addBackButton = true, unitPrice = "تومان"} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
+        let key = `${this.dbKey}/${this.idKey}`;
+        let result = data.map(p => [Command.ToTlgButtons(p.name, `${this.dbKey}/${p.id}/details`)]);
+        // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
 
         if (options.forAdmin == true) {
             result.push(this.seed.adminButtons.newPlan)
@@ -94,6 +105,12 @@ module.exports = {
         }
 
         return data;
+    },
+
+    async findByIdDb(db, id) {
+        let plans = await db.get(this.dbKey, {type: "json"}) || [];
+
+        return plans.find(p => p.id == id);
     },
 
     findById(id) {
