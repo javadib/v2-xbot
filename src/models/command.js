@@ -129,7 +129,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             },
             "tags": [],
             "asButton": true,
-            "body": `{0} با موفقیت حذف شد.`,
+            "body": `{modelName} با موفقیت حذف شد.`,
             "successText": ``,
             "helpText": ``,
             "preFunc": "Plan;deleteById",

@@ -99,7 +99,7 @@ module.exports = {
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdate.id};${plan.id}`;
-                actions = Command.yesNoButton({text: `ثبت تغییرات ✅`, cbData: doUpdate}, {cbData: managePlanId});
+                actions = []; // Command.yesNoButton({text: `ثبت تغییرات ✅`, cbData: doUpdate}, {cbData: managePlanId});
                 actions.push(Command.backButton(managePlanId));
                 text = `مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
 بقیه موارد تغییری نخواهند کرد:
@@ -108,24 +108,11 @@ module.exports = {
 
 ${this.toInput(plan)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, [], opt);
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
                 return res
-            //
-            // case action.match(/doUpdate/)?.input:
-            //     await this.doUpdate(db, plan.id, input)
-            //     // var doUpdate = `${Command.list.doUpdate};${plan.id}`;
-            //     var actions = [Command.list.managePlan, Command.list.manage]
-            //         .map(p => [Command.ToTlgButton(p.textIcon?.call(p) || p.name, `${p.id}`)]);
-            //     actions.push(Command.backButton(managePlanId));
-            //
-            //     var res = await pub.sendInlineButtonRow(chatId, `✅ ${this.modelName} شما با موفقیت آپدیت شد.`, actions, opt);
-            //
-            //     // await db.update(chatId, {currentCmd: confirmDeleteId})
-            //
-            //     return res
 
             case action.match(/delete/)?.input:
                 let doDelete = `${confirmDeleteId};${plan.id}`;
@@ -223,7 +210,7 @@ ${this.toInput(plan)}
         let newData = await this.parseInput(message.text, {});
         currentModel = Object.assign(currentModel, newData);
 
-        await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
