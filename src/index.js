@@ -212,12 +212,12 @@ async function onMessage(message, options = {}) {
 
             case cmdId.match(/plan\/(.?)*\/details/)?.input:
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
+            // case cmdId.match(/plan\/(.?)*\/doUpdate/)?.input:
             case cmdId.match(/plan\/.*\/delete/)?.input:
                 return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
         }
 
         let cmd = Command.find(cmdId);
-        let currentCmd = Command.find(usrSession.currentCmd);
 
         // await TlgBot.sendInlineButtonRow(chatId, `cmd: ${JSON.stringify(cmd?.id)} && currentCmd: ${currentCmd?.id}`, [])
 
@@ -227,11 +227,10 @@ async function onMessage(message, options = {}) {
                 usrSession = await wkv.update(chatId, data);
             }
 
-            //TODO: Exec preFUnc
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
 
-                // await TlgBot.sendInlineButtonRow(Config.bot.adminId, `cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await TlgBot.sendInlineButtonRow(Config.bot.adminId, `cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
@@ -250,12 +249,16 @@ async function onMessage(message, options = {}) {
             return response
         }
 
+        var [uCmdId, uInput] = usrSession.currentCmd?.split(';');
+        let currentCmd = Command.find(uCmdId);
+
         if (currentCmd) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
 
-                await TlgBot.sendInlineButtonRow(Config.bot.adminId, `{model, func}: ${JSON.stringify({model, func})}`, []);
+                // await TlgBot.sendInlineButtonRow(Config.bot.adminId, `{model, func}: ${JSON.stringify({model, func})}`, []);
 
+                handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
 

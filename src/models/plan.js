@@ -8,6 +8,7 @@ module.exports = {
     dbKey: "plan",
     idKey: "id",
     textKey: "name",
+    modelName: "پلن",
     seed: {
         name: 'seed plans',
         cmd: 'select_plan',
@@ -64,50 +65,74 @@ module.exports = {
         }
     },
 
+
     async adminRoute(cmdId, db, message, pub) {
         let chatId = message.chat_id || message.chat.id;
         let isAdmin = chatId === Config.bot.adminId;
         let [model, id, action] = cmdId.split('/');
         let plan = await this.findByIdDb(db, id);
         let confirmDeleteId = Command.list.confirmDelete.id;
+        let managePlanId = Command.list.managePlan.id;
 
 
         // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
 
 
         if (!plan) {
-            return await pub.sendInlineButtonRow(chatId, `پلن مربوطه پیدا نشد! 🫤`);
+            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
 
         // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
+        let text, actions;
         let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
 
         switch (action) {
             case action.match(/details/)?.input:
-                var actions = this.seed.adminButtons.actions(plan?.id);
-                actions.push(Command.backButton("/start"));
+                actions = this.seed.adminButtons.actions(plan?.id);
+                actions.push(Command.backButton(managePlanId));
 
-                let text2 = `پلن ${plan.name}
+                text = `${this.modelName} ${plan.name}
                 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text2, actions, opt)
+                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
-                var actions = this.seed.adminButtons.actions(plan?.id);
-                actions.push(Command.backButton("/start"));
-                var res = await pub.sendInlineButtonRow(chatId, `update GI`, actions, opt);
+                let doUpdate = `${Command.list.doUpdate.id};${plan.id}`;
+                actions = Command.yesNoButton({text: `ثبت تغییرات ✅`, cbData: doUpdate}, {cbData: managePlanId});
+                actions.push(Command.backButton(managePlanId));
+                text = `مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
+بقیه موارد تغییری نخواهند کرد:
 
-                await db.update(chatId, {currentCmd: confirmDeleteId})
+مشخصات فعلی ${this.modelName} : 
+
+${this.toInput(plan)}
+                `;
+                var res = await pub.sendInlineButtonRow(chatId, text, [], opt);
+
+                await db.update(chatId, {currentCmd: doUpdate})
 
                 return res
+            //
+            // case action.match(/doUpdate/)?.input:
+            //     await this.doUpdate(db, plan.id, input)
+            //     // var doUpdate = `${Command.list.doUpdate};${plan.id}`;
+            //     var actions = [Command.list.managePlan, Command.list.manage]
+            //         .map(p => [Command.ToTlgButton(p.textIcon?.call(p) || p.name, `${p.id}`)]);
+            //     actions.push(Command.backButton(managePlanId));
+            //
+            //     var res = await pub.sendInlineButtonRow(chatId, `✅ ${this.modelName} شما با موفقیت آپدیت شد.`, actions, opt);
+            //
+            //     // await db.update(chatId, {currentCmd: confirmDeleteId})
+            //
+            //     return res
 
             case action.match(/delete/)?.input:
                 let doDelete = `${confirmDeleteId};${plan.id}`;
-                var actions = Command.yesNoButton({cbData: doDelete}, {cbData: Command.list.managePlan.id})
+                actions = Command.yesNoButton({cbData: doDelete}, {cbData: managePlanId})
                 // var actions = this.seed.adminButtons.actions(plan?.id);
                 actions.push(Command.backButton("/start"));
-                let text = ` آیا از حذف پلن ${plan.name} مطمئنید؟`;
+                text = ` آیا از حذف ${this.modelName} ${plan.name} مطمئنید؟`;
                 var res  = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
@@ -126,7 +151,7 @@ module.exports = {
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
         let key = `${this.dbKey}/${this.idKey}`;
-        let result = data.map(p => [Command.ToTlgButtons(p.name, `${this.dbKey}/${p.id}/details`)]);
+        let result = data.map(p => [Command.ToTlgButton(p.name, `${this.dbKey}/${p.id}/details`)]);
         // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
 
         if (options.forAdmin == true) {
@@ -170,18 +195,39 @@ module.exports = {
         return this.seed.data.find(p => p.model.id == id)
     },
 
+    toInput(obj, options = {}) {
+        return Object.keys(obj).reduce((pv, cv, i) => {
+            pv += `${cv} : ${obj[cv]}\n`;
+
+            return pv;
+        }, '')
+    },
+
     async parseInput(input, options = {}) {
         let result = input.split('\n').reduce((pv, cv, i) => {
             let split = cv.split(':');
 
             if (split.length < 1) return pv;
 
-            pv[split[0]] = split[1].trim();
+            pv[split[0].trim()] = split[1].trimLeft().trimRight();
 
             return pv;
         }, {})
 
         return result;
+    },
+
+    async doUpdate({db, input, message, usrSession}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
+        let newData = await this.parseInput(message.text, {});
+        currentModel = Object.assign(currentModel, newData);
+
+        await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+
+        await db.put(this.dbKey, oldData)
+
+        return currentModel;
     },
 
     async deleteById({db, input}, options = {}) {

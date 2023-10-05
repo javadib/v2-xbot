@@ -85,6 +85,23 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "nextId": "",
             "buttons": ["managePlan", "manage"]
         },
+        "doUpdate": {
+            "prevId": "managePlan",
+            "id": "doUpdate",
+            "tags": [],
+            "asButton": false,
+            "body": `✅ پلن شما با موفقیت آپدیت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Plan;doUpdate",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["managePlan", "manage"]
+        },
         "deleteItem": {
             "prevId": "managePlan",
             "id": "deleteItem",
@@ -174,7 +191,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         return [{text: text || "برگشت ↩️", callback_data: cbData}];
     },
 
-    ToTlgButtons(text, cbData, options = {}) {
+    ToTlgButton(text, cbData, options = {}) {
         return {text: text, callback_data: cbData.toString()};
     },
 
