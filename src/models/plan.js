@@ -1,6 +1,7 @@
 'use strict';
 
 const Command = require("./command");
+const Config = require("../config");
 
 
 module.exports = {
@@ -55,11 +56,61 @@ module.exports = {
             actions(id) {
                 return [
                     [
-                        {text: `✏️ ویرایش`, callback_data: `${this.dbKey}/${id}/update`},
-                        {text: `❌ حذف آیتم`, callback_data: `${this.dbKey}/${id}/delete`}
+                        {text: `✏️ ویرایش`, callback_data: `${"plan"}/${id}/update`},
+                        {text: `❌ حذف آیتم`, callback_data: `${"plan"}/${id}/delete`}
                     ]
                 ]
             },
+        }
+    },
+
+    async adminRoute(cmdId, db, message, pub) {
+        let chatId = message.chat_id || message.chat.id;
+        let isAdmin = chatId === Config.bot.adminId;
+        let [model, id, action] = cmdId.split('/');
+        let plan = await this.findByIdDb(db, id);
+
+        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
+
+
+        if (!plan) {
+            return await pub.sendInlineButtonRow(chatId, `پلن مربوطه پیدا نشد! 🫤`);
+        }
+
+
+        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
+
+        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+
+        switch (action) {
+            case action.match(/details/)?.input:
+                var actions = this.seed.adminButtons.actions(plan?.id);
+                actions.push(Command.backButton("/start"));
+
+                let text2 = `پلن ${plan.name}
+                یکی از عملیات مربوطه روانتخاب کنید:`;
+                return await pub.sendInlineButtonRow(chatId, text2, actions, opt)
+
+            case action.match(/update/)?.input:
+                var actions = this.seed.adminButtons.actions(plan?.id);
+                actions.push(Command.backButton("/start"));
+                var res = await pub.sendInlineButtonRow(chatId, `update GI`, actions, opt);
+
+                let confirmDeleteId = Command.list.confirmDelete.id;
+                await db.update(chatId, {currentCmd: confirmDeleteId})
+
+                return res
+
+            case action.match(/delete/)?.input:
+                var actions = Command.yesNoButton({cbData: confirmDeleteId}, {cbData: Command.list.managePlan.id})
+                // var actions = this.seed.adminButtons.actions(plan?.id);
+                actions.push(Command.backButton("/start"));
+                let text = ` آیا از حذف پلن ${plan.name} مطمئنید؟`;
+                var res  = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+
+                // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
+
+                return res
         }
     },
 
@@ -129,6 +180,15 @@ module.exports = {
         }, {})
 
         return result;
+    },
+
+    async deleteById({db, id}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let newData = oldData.filter(p => p.id !== id);
+
+        let saved = await db.put(this.dbKey, newData);
+
+        return newData;
     },
 
     async create({db, input}, options = {}) {

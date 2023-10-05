@@ -85,7 +85,23 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "nextId": "",
             "buttons": ["managePlan", "manage"]
         },
-
+        "deleteItem": {
+            "prevId": "managePlan",
+            "id": "deleteItem",
+            "title": "حذف پلن",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "tags": [],
+            "asButton": true,
+            "body": ``,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "confirmDelete",
+            "buttons": []
+        },
         "confirmDelete": {
             "prevId": "confirmDelete",
             "id": "confirmDelete",
@@ -96,43 +112,12 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             },
             "tags": [],
             "asButton": true,
-            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
-
-name: ${"نام نمایشی".replaceAll(" ", "_")}
-totalPrice: ${"قیمت".replaceAll(" ", "_")} 
-maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
-volume: ${"حجم به گیگ".replaceAll(" ", "_")}
-`,
+            "body": `{0} با موفقیت حذف شد.`,
             "successText": ``,
-            "helpText": `
-توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
+            "helpText": ``,
             "preFunc": "",
-            "nextId": "createPlan",
-            "buttons": []
-        },
-        "deleteItem": {
-            "prevId": "managePlan",
-            "id": "newPlan",
-            "title": "ساخت پلن جدید",
-            "icon": `📦 ➕`,
-            textIcon() {
-                return `${this.icon} ${this.title}`
-            },
-            "tags": [],
-            "asButton": true,
-            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
-
-name: ${"نام نمایشی".replaceAll(" ", "_")}
-totalPrice: ${"قیمت".replaceAll(" ", "_")} 
-maxDays: ${"تعداد روز".replaceAll(" ", "_")} 
-volume: ${"حجم به گیگ".replaceAll(" ", "_")}
-`,
-            "successText": ``,
-            "helpText": `
-توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
-            "preFunc": "",
-            "nextId": "createPlan",
-            "buttons": []
+            "nextId": "",
+            "buttons": ["managePlan", "manage"]
         },
 
         "manageServer": {
@@ -169,6 +154,19 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "nextId": "",
             "buttons": ["user.myConfig", "user.newOrder"]
         }
+    },
+
+    yesNoButton(yes, no, options = {}) {
+        return [
+            [
+                {text: yes?.text || "🆗 بله، انجام بشه", callback_data: yes.cbData},
+                {text: no?.text || "🚫 منصرف شدم", callback_data: no.cbData}
+            ]
+        ];
+    },
+
+    backButton(cbData, text, options = {}) {
+        return [{text: text || "برگشت ↩️", callback_data: cbData}];
     },
 
     ToTlgButtons(text, cbData, options = {}) {

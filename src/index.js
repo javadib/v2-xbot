@@ -127,11 +127,6 @@ async function unRegisterWebhook(event) {
     return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
 
-
-function buildBack(cbData, text, options = {}) {
-    return [{text: text || "برگشت ↩️", callback_data: cbData}];
-}
-
 async function buildButtons(cmd, isAdmin, options = {}) {
     let prevCmd = cmd.prevId;
     let opt = Object.assign({}, options, {forAdmin: isAdmin, prevCmd: cmd.prevId});
@@ -157,7 +152,7 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -216,28 +211,29 @@ async function onMessage(message, options = {}) {
                 return await sendStartMessage(message, isAdmin);
 
             case cmdId.match(/plan\/(.?)*\/details/)?.input:
-                let [model, id, action] = cmdId.split('/')
-                let obj = await Plan.findByIdDb(wkv, id);
-                let actions = Plan.seed.adminButtons.actions(obj?.id).push(buildBack("/start"));
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
 
-                let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-                let text2 = `پلن ${obj.name}
-                یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await TlgBot.sendToAdmin(text2, actions, opt)
+                // let [model, id, action] = cmdId.split('/')
+                // let obj = await Plan.findByIdDb(wkv, id);
+                //
+                // // await TlgBot.sendInlineButtonRow(chatId, `obj: ${JSON.stringify(obj)}`, [])
+                //
+                // let actions = Plan.seed.adminButtons.actions(obj?.id);
+                // actions.push(Command.backButton("/start"))
+                //
+                // await TlgBot.sendInlineButtonRow(chatId, `actions: ${JSON.stringify(actions)}`, [])
+
+
+                // let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+                // let text2 = `پلن ${obj.name}
+                // یکی از عملیات مربوطه روانتخاب کنید:`;
+                // return await TlgBot.sendToAdmin(text2, actions)
 
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
-                var [Model, id] = cmdId.split('/')
-                var uObj = await Plan.findByIdDb(wkv, uId);
-                var uActions = Plan.seed.adminButtons.actions(uObj?.id);
-
-                var opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-                var text2 = `پلن ${obj.name}
-                یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await TlgBot.sendToAdmin(text2, actions, opt)
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
 
             case cmdId.match(/plan\/.*\/delete/)?.input:
-                return await TlgBot.sendToAdmin(cmdId, [])
-            // return await sendStartMessage(message, isAdmin);
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
         }
 
         let cmd = Command.find(cmdId);
@@ -260,9 +256,9 @@ async function onMessage(message, options = {}) {
             let text1 = `${cmd.body}\n${cmd.helpText}`;
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
-            if (cmd.nextId) {
+            // if (cmd.nextId) {
                 await wkv.update(chatId, {currentCmd: cmd.nextId})
-            }
+            // }
 
             return response
         }
