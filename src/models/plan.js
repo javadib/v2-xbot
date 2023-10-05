@@ -103,7 +103,8 @@ module.exports = {
                 return res
 
             case action.match(/delete/)?.input:
-                var actions = Command.yesNoButton({cbData: confirmDeleteId}, {cbData: Command.list.managePlan.id})
+                let doDelete = `${confirmDeleteId};${plan.id}`;
+                var actions = Command.yesNoButton({cbData: doDelete}, {cbData: Command.list.managePlan.id})
                 // var actions = this.seed.adminButtons.actions(plan?.id);
                 actions.push(Command.backButton("/start"));
                 let text = ` آیا از حذف پلن ${plan.name} مطمئنید؟`;
@@ -183,9 +184,12 @@ module.exports = {
         return result;
     },
 
-    async deleteById({db, id}, options = {}) {
+    async deleteById({db, input}, options = {}) {
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-        let newData = oldData.filter(p => p.id !== id);
+        let newData = oldData.filter(p => p.id != input);
+
+        // await options.pub.sendToAdmin(`inputs: ${typeof newData}, && ${JSON.stringify(newData)}`);
+
 
         let saved = await db.put(this.dbKey, newData);
 

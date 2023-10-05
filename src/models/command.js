@@ -115,7 +115,12 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "body": `{0} با موفقیت حذف شد.`,
             "successText": ``,
             "helpText": ``,
-            "preFunc": "",
+            "preFunc": "Plan;deleteById",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
             "nextId": "",
             "buttons": ["managePlan", "manage"]
         },
@@ -159,8 +164,8 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
     yesNoButton(yes, no, options = {}) {
         return [
             [
-                {text: yes?.text || "🆗 بله، انجام بشه", callback_data: yes.cbData},
-                {text: no?.text || "🚫 منصرف شدم", callback_data: no.cbData}
+                {text: no?.text || "منصرف شدم 🚫", callback_data: no.cbData},
+                {text: yes?.text || "بله، انجام بشه 👍", callback_data: yes.cbData},
             ]
         ];
     },
