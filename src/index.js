@@ -211,27 +211,7 @@ async function onMessage(message, options = {}) {
                 return await sendStartMessage(message, isAdmin);
 
             case cmdId.match(/plan\/(.?)*\/details/)?.input:
-                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
-
-                // let [model, id, action] = cmdId.split('/')
-                // let obj = await Plan.findByIdDb(wkv, id);
-                //
-                // // await TlgBot.sendInlineButtonRow(chatId, `obj: ${JSON.stringify(obj)}`, [])
-                //
-                // let actions = Plan.seed.adminButtons.actions(obj?.id);
-                // actions.push(Command.backButton("/start"))
-                //
-                // await TlgBot.sendInlineButtonRow(chatId, `actions: ${JSON.stringify(actions)}`, [])
-
-
-                // let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-                // let text2 = `پلن ${obj.name}
-                // یکی از عملیات مربوطه روانتخاب کنید:`;
-                // return await TlgBot.sendToAdmin(text2, actions)
-
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
-                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
-
             case cmdId.match(/plan\/.*\/delete/)?.input:
                 return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
         }

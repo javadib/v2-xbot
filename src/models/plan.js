@@ -69,6 +69,8 @@ module.exports = {
         let isAdmin = chatId === Config.bot.adminId;
         let [model, id, action] = cmdId.split('/');
         let plan = await this.findByIdDb(db, id);
+        let confirmDeleteId = Command.list.confirmDelete.id;
+
 
         // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
 
@@ -96,7 +98,6 @@ module.exports = {
                 actions.push(Command.backButton("/start"));
                 var res = await pub.sendInlineButtonRow(chatId, `update GI`, actions, opt);
 
-                let confirmDeleteId = Command.list.confirmDelete.id;
                 await db.update(chatId, {currentCmd: confirmDeleteId})
 
                 return res
