@@ -1,6 +1,14 @@
 'use strict';
 
+const Command = require("./command");
+const Config = require("../config");
+
+
 module.exports = {
+    dbKey: "server",
+    idKey: "id",
+    textKey: "title",
+    modelName: "سرور",
     seed: {
         name: 'Seed Servers',
         cmd: 'select_server',
@@ -31,12 +39,163 @@ module.exports = {
 
     findById(id) {
         return this.seed.data.find(p => p.model.id == id)
-    }
-},
+    },
 
 
-    [
-        [{"text": "🦹‍", "callback_data": "managePlan"}],
-        [{"text": "🦹‍", "callback_data": "manageServer" }],
-        [{"text": "برگشت ↩️", "callback_data": ""}]
-    ]
+    async findAll(db, options = {}) {
+        let {addBackButton = true, unitPrice = "تومان"} = options;
+
+        let data = await db.get(this.dbKey, {type: "json"}) || []
+        let key = `${this.dbKey}/${this.idKey}`;
+        let result = data.map(p => [Command.ToTlgButton(p.title, `${this.dbKey}/${p.id}/details`)]);
+        // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
+
+        if (options.forAdmin == true) {
+            result.push(Command.adminButtons.newServer())
+        }
+
+        if (addBackButton) {
+            result.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
+        }
+
+        return result;
+    },
+
+    async findByIdDb(db, id) {
+        let plans = await db.get(this.dbKey, {type: "json"}) || [];
+
+        return plans.find(p => p.id == id);
+    },
+
+    toInput(obj, options = {}) {
+        return Object.keys(obj).reduce((pv, cv, i) => {
+            pv += `${cv} : ${obj[cv]}\n`;
+
+            return pv;
+        }, '')
+    },
+
+    async parseInput(input, options = {}) {
+        let result = input.split('\n').reduce((pv, cv, i) => {
+            let split = cv.split(':');
+
+            if (split.length < 1) return pv;
+
+            pv[split[0].trim()] = split[1].trimLeft().trimRight();
+
+            return pv;
+        }, {})
+
+        return result;
+    },
+
+    async doUpdate({db, input, message, usrSession}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
+        let newData = await this.parseInput(message.text, {});
+        newData.id = input;
+        currentModel = Object.assign(currentModel, newData);
+
+        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+
+        await db.put(this.dbKey, oldData)
+
+        return currentModel;
+    },
+
+    async deleteById({db, input}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let newData = oldData.filter(p => p.id != input);
+
+        // await options.pub.sendToAdmin(`inputs: ${typeof newData}, && ${JSON.stringify(newData)}`);
+
+
+        let saved = await db.put(this.dbKey, newData);
+
+        return newData;
+    },
+
+    async create({db, input}, options = {}) {
+        let data = await this.parseInput(input, options);
+        // await options.pub.sendToAdmin(`after input: ${typeof data}`);
+
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+
+        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+
+        let newData = {
+            "id": new Date().toUnixTIme(),
+            "title": data.title,
+            "remark": data.remark,
+            "url": data.url
+        };
+        oldData.push(newData);
+
+        await db.put(this.dbKey, oldData);
+
+        return oldData;
+    },
+
+    async adminRoute(cmdId, db, message, pub) {
+        let chatId = message.chat_id || message.chat.id;
+        let [model, id, action] = cmdId.split('/');
+        let server = await this.findByIdDb(db, id);
+        let confirmDeleteId = Command.list.confirmDeleteServer.id;
+        let manageServerId = Command.list.manageServer.id;
+
+
+        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
+
+
+        if (!server) {
+            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+        }
+
+
+        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
+
+        let text, actions;
+        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+
+        switch (action) {
+            case action.match(/details/)?.input:
+                actions = Command.adminButtons.actions(this.dbKey, server.id);
+                actions.push(Command.backButton(manageServerId));
+
+                text = ` ${Command.list.manageServer.icon} ${this.modelName} ${server.title}
+                
+یکی از عملیات مربوطه روانتخاب کنید:`;
+                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+
+            case action.match(/update/)?.input:
+                let doUpdate = `${Command.list.doUpdateServer.id};${server.id}`;
+                actions = [];
+                actions.push(Command.backButton(manageServerId));
+                text = `✏️ مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
+                
+بقیه موارد تغییری نخواهند کرد:
+
+مشخصات فعلی ${this.modelName} : 
+
+${this.toInput(server)}
+                `;
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+
+                await db.update(chatId, {currentCmd: doUpdate})
+
+                return res
+
+            case action.match(/delete/)?.input:
+                let doDelete = `${confirmDeleteId};${server.id}`;
+                actions = Command.yesNoButton({cbData: doDelete}, {cbData: manageServerId})
+                actions.push(Command.backButton("/start"));
+                text = ` آیا از حذف ${this.modelName} ${server.title} مطمئنید؟`;
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+
+                // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
+
+                return res
+        }
+    },
+
+}

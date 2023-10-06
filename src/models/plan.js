@@ -136,25 +136,6 @@ ${this.toInput(plan)}
         await db.update(this.dbKey, this.seed.data.map(p => p.model))
     },
 
-    async findAll(db, options = {}) {
-        let {addBackButton = true, unitPrice = "تومان"} = options;
-
-        let data = await db.get(this.dbKey, {type: "json"}) || []
-        let key = `${this.dbKey}/${this.idKey}`;
-        let result = data.map(p => [Command.ToTlgButton(p.name, `${this.dbKey}/${p.id}/details`)]);
-        // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
-
-        if (options.forAdmin == true) {
-            result.push(this.seed.adminButtons.newPlan)
-        }
-
-        if (addBackButton) {
-            result.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
-        }
-
-        return result;
-    },
-
     getButtons(nextCmd, options = {}) {
         let {addBackButton = true, unitPrice = "تومان"} = options;
         let data = this.seed.data.map(p => {
@@ -175,14 +156,33 @@ ${this.toInput(plan)}
         return data;
     },
 
+    findById(id) {
+        return this.seed.data.find(p => p.model.id == id)
+    },
+
+    async findAll(db, options = {}) {
+        let {addBackButton = true, unitPrice = "تومان"} = options;
+
+        let data = await db.get(this.dbKey, {type: "json"}) || []
+        let key = `${this.dbKey}/${this.idKey}`;
+        let result = data.map(p => [Command.ToTlgButton(p.name, `${this.dbKey}/${p.id}/details`)]);
+        // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
+
+        if (options.forAdmin == true) {
+            result.push(this.seed.adminButtons.newPlan)
+        }
+
+        if (addBackButton) {
+            result.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
+        }
+
+        return result;
+    },
+
     async findByIdDb(db, id) {
         let plans = await db.get(this.dbKey, {type: "json"}) || [];
 
         return plans.find(p => p.id == id);
-    },
-
-    findById(id) {
-        return this.seed.data.find(p => p.model.id == id)
     },
 
     toInput(obj, options = {}) {

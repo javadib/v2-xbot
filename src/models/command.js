@@ -2,7 +2,23 @@
 
 const Config = require('../config');
 
-module.exports = {
+const Cmd = {
+    adminButtons: {
+        newPlan() {
+            return [{text: Cmd.list.newPlan.textIcon(), callback_data: Cmd.list.newPlan.id}]
+        },
+        newServer() {
+            return [{text: Cmd.list.newServer.textIcon(), callback_data: Cmd.list.newServer.id}]
+        },
+        actions(model, id) {
+            return [
+                [
+                    {text: `✏️ ویرایش`, callback_data: `${model}/${id}/update`},
+                    {text: `❌ حذف آیتم`, callback_data: `${model}/${id}/delete`}
+                ]
+            ]
+        },
+    },
     list: {
         "manage": {
             "prevId": "/start",
@@ -148,22 +164,130 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         },
 
         "manageServer": {
+            "prevId": "manage",
             "id": "manageServer",
-            "title": "مدیریت سرورها",
+            "title": "مدیریت سرور ها",
             "icon": `💻`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `💻 
+
+روی یک دکمه ضربه بزنید یا
+ از دکمه "سرور جدید" برای افزودن سرور جدید استفاده کنید:`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "",
+            "buttons": "Server"
+        },
+        "newServer": {
+            "prevId": "manageServer",
+            "id": "newServer",
+            "title": "ساخت سرور جدید",
+            "icon": `💻 ➕`,
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
 
             "asButton": true,
-            "body": ` به بخش مدیریت خوش آمدید 🌹
-یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
+            "body": `💻 ➕ 
+
+یک سرور طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+
+title: ${"نام نماشی برای کاربر".replaceAll(" ", "_")}
+remark: ${"نام نمایشی برای ساخت کانفیگ".replaceAll(" ", "_")} 
+url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")} 
+`,
+            "successText": ``,
+            "helpText": `⚠️ لطفا هنگا ثبت موراد زیر رو رعایت کنید:
+
+- در قسمت remark ترجیحا از فاصله، ایموجی، سیمبل استفاده نکنید!
+
+- در قسمت url ترجیحا از آدرس  پنل نماینده برای امنیت بیشتر استفاده کنید`,
+            "preFunc": "",
+            "nextId": "createServer",
+            "buttons": []
+        },
+        "createServer": {
+            "prevId": "manageServer",
+            "id": "createServer",
+            // "title": "ساخت پلن جدید",
+            // "icon": `📦 ➕`,
+            // textIcon() {
+            //     return `${this.icon} ${this.title}`
+            // },
+
+            "asButton": false,
+            "body": `✅ سرور شما با موفقیت ثبت شد.`,
             "successText": ``,
             "helpText": ``,
-            "preFunc": '',
+            "preFunc": "Server;create",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
             "nextId": "",
-            "buttons": ["user.myConfig", "user.newOrder"]
+            "buttons": ["manageServer", "manage"]
         },
+        "doUpdateServer": {
+            "prevId": "manageServer",
+            "id": "doUpdateServer",
+
+            "asButton": false,
+            "body": `✅ سرور شما با موفقیت آپدیت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Server;doUpdate",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["manageServer", "manage"]
+        },
+        "deleteServer": {
+            "prevId": "manageServer",
+            "id": "deleteServer",
+            "title": "حذف سرور",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": ``,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "confirmDeleteServer",
+            "buttons": []
+        },
+        "confirmDeleteServer": {
+            "prevId": "manageServer",
+            "id": "confirmDeleteServer",
+            "title": "حذف سرور",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `{modelName} با موفقیت حذف شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Server;deleteById",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["manageServer", "manage"]
+        },
+
         "managePayment": {
             "id": "managePayment",
             "title": "مدیریت",
@@ -231,6 +355,4 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 
 }
 
-
-
-
+module.exports = Cmd;
