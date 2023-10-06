@@ -152,7 +152,7 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -232,7 +232,7 @@ async function onMessage(message, options = {}) {
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
 
-                await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
@@ -258,7 +258,7 @@ async function onMessage(message, options = {}) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
 
-                await TlgBot.sendInlineButtonRow(Config.bot.adminId, `{model, func}: ${JSON.stringify({model, func})}`, []);
+                // await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
