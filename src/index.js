@@ -304,8 +304,8 @@ function pushAdminButtons(buttons = [], isAdmin = false) {
 async function sendStartMessage(message, isAdmin) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
-        [{text: 'خرید اشتراک', callback_data: 'select_server'}],
-        [{text: 'سوابق خرید', callback_data: 'order_history'}]
+        [{text: '📦  خرید اشتراک', callback_data: 'select_server'}],
+        [{text: '🛒 سوابق خرید', callback_data: 'order_history'}]
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)

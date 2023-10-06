@@ -93,15 +93,18 @@ module.exports = {
                 actions = this.seed.adminButtons.actions(plan?.id);
                 actions.push(Command.backButton(managePlanId));
 
-                text = `${this.modelName} ${plan.name}
-                یکی از عملیات مربوطه روانتخاب کنید:`;
+                text = ` ${Command.list.managePlan.icon} ${this.modelName} ${plan.name}
+                
+یکی از عملیات مربوطه روانتخاب کنید:`;
                 return await pub.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdate.id};${plan.id}`;
                 actions = []; // Command.yesNoButton({text: `ثبت تغییرات ✅`, cbData: doUpdate}, {cbData: managePlanId});
                 actions.push(Command.backButton(managePlanId));
-                text = `مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
+                text = `✏️
+              
+مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
 بقیه موارد تغییری نخواهند کرد:
 
 مشخصات فعلی ${this.modelName} : 
@@ -208,6 +211,7 @@ ${this.toInput(plan)}
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
         let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
         let newData = await this.parseInput(message.text, {});
+        newData.id = input;
         currentModel = Object.assign(currentModel, newData);
 
         // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);

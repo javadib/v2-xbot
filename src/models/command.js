@@ -12,7 +12,7 @@ module.exports = {
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
@@ -30,9 +30,12 @@ module.exports = {
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
-            "body": `📦 روی یک پلن ضربه بزنید یا دکمه ثبت جدید برای انتخاب کنید:`,
+            "body": `📦 
+
+روی یک پلن ضربه بزنید یا
+ از دکمه "پلن جدید" برای افزودن پلن جدید استفاده کنید:`,
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
@@ -47,9 +50,11 @@ module.exports = {
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
-            "body": `📦 ➕ یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+            "body": `📦 ➕ 
+
+یک پلن طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
 
 name: ${"نام نمایشی".replaceAll(" ", "_")}
 totalPrice: ${"قیمت".replaceAll(" ", "_")} 
@@ -71,7 +76,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             // textIcon() {
             //     return `${this.icon} ${this.title}`
             // },
-            "tags": [],
+
             "asButton": false,
             "body": `✅ پلن شما با موفقیت ثبت شد.`,
             "successText": ``,
@@ -88,7 +93,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         "doUpdate": {
             "prevId": "managePlan",
             "id": "doUpdate",
-            "tags": [],
+
             "asButton": false,
             "body": `✅ پلن شما با موفقیت آپدیت شد.`,
             "successText": ``,
@@ -110,7 +115,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
             "body": ``,
             "successText": ``,
@@ -127,7 +132,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
             "body": `{modelName} با موفقیت حذف شد.`,
             "successText": ``,
@@ -149,7 +154,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": true,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
@@ -166,7 +171,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
-            "tags": [],
+
             "asButton": false,
             "body": ` به بخش مدیریت خوش آمدید 🌹
 یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
