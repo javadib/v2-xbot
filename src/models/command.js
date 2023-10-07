@@ -10,6 +10,9 @@ const Cmd = {
         newServer() {
             return [{text: Cmd.list.newServer.textIcon(), callback_data: Cmd.list.newServer.id}]
         },
+        newPayment() {
+            return [{text: Cmd.list.newPayment.textIcon(), callback_data: Cmd.list.newPayment.id}]
+        },
         actions(model, id) {
             return [
                 [
@@ -20,6 +23,59 @@ const Cmd = {
         },
     },
     list: {
+        "selectServer": {
+            "prevId": "manage",
+            "id": "selectServer",
+            "title": "انتخاب سرور",
+            "icon": `📍`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `📍 
+یک لوکیشین برای اتصال، انتخاب کنید`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "selectPlan",
+            "buttons": "Server"
+        },
+        "selectPlan": {
+            "prevId": "selectServer",
+            "id": "selectPlan",
+            "title": "انتخاب پلن",
+            "icon": `📦`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `📦 
+یکی از پلن های زیرو انتخاب کنید`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "selectPayment",
+            "buttons": "Plan"
+        },
+        "selectPayment": {
+            "prevId": "selectPlan",
+            "id": "selectPayment",
+            "title": "انتخاب درگاه پرداخت",
+            "icon": `💳`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `💳 
+یک روش پرداخت رو انتخاب کنید`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "show_invoice",
+            "buttons": "Payment"
+        },
+
+
         "manage": {
             "prevId": "/start",
             "id": "manage",
@@ -289,22 +345,119 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
         },
 
         "managePayment": {
+            "prevId": "manage",
             "id": "managePayment",
-            "title": "مدیریت",
-            "icon": `🦹‍`,
+            "title": "مدیریت درگاه های پرداخت",
+            "icon": `💳`,
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
+            "asButton": true,
+            "body": `💳 
 
-            "asButton": false,
-            "body": ` به بخش مدیریت خوش آمدید 🌹
-یکی از دستورات رو از طریق دکمه انتخاب کنید 👇`,
+روی یک دکمه ضربه بزنید یا
+ از دکمه "درگاه جدید" برای افزودن درگاه جدید استفاده کنید:`,
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
             "nextId": "",
-            "buttons": ["user.myConfig", "user.newOrder"]
-        }
+            "buttons": "Payment"
+        },
+        "newPayment": {
+            "prevId": "managePayment",
+            "id": "newPayment",
+            "title": "ساخت درگاه جدید",
+            "icon": `💳 ➕`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `💳 ➕ 
+
+یک درگاه طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+                    
+title: ${"کارت به کارت".replaceAll(" ", "_")}
+appKey: ${"نام کامل صاحب کارت".replaceAll(" ", "_")} 
+appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")} 
+`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "createPayment",
+            "buttons": []
+        },
+        "createPayment": {
+            "prevId": "managePayment",
+            "id": "createPayment",
+            "asButton": false,
+            "body": `✅ درگاه شما با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Payment;create",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["managePayment", "manage"]
+        },
+        "doUpdatePayment": {
+            "prevId": "managePayment",
+            "id": "doUpdatePayment",
+
+            "asButton": false,
+            "body": `✅ درگاه شما با موفقیت آپدیت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Payment;doUpdate",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["managePayment", "manage"]
+        },
+        "deletePayment": {
+            "prevId": "managePayment",
+            "id": "deletePayment",
+            "title": "حذف سرور",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": ``,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "confirmDeletePayment",
+            "buttons": []
+        },
+        "confirmDeletePayment": {
+            "prevId": "managePayment",
+            "id": "confirmDeletePayment",
+            "title": "حذف سرور",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `{modelName} با موفقیت حذف شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "Payment;deleteById",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["managePayment", "manage"]
+        },
     },
 
     yesNoButton(yes, no, options = {}) {

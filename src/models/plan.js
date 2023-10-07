@@ -123,7 +123,7 @@ ${this.toInput(plan)}
                 // var actions = this.seed.adminButtons.actions(plan?.id);
                 actions.push(Command.backButton("/start"));
                 text = ` آیا از حذف ${this.modelName} ${plan.name} مطمئنید؟`;
-                var res  = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 
@@ -161,11 +161,11 @@ ${this.toInput(plan)}
     },
 
     async findAll(db, options = {}) {
-        let {addBackButton = true, unitPrice = "تومان"} = options;
+        let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
         let key = `${this.dbKey}/${this.idKey}`;
-        let result = data.map(p => [Command.ToTlgButton(p.name, `${this.dbKey}/${p.id}/details`)]);
+        let result = data.map(p => [Command.ToTlgButton(p.name, nextCmd || `${this.dbKey}/${p.id}/details`)]);
         // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
 
         if (options.forAdmin == true) {

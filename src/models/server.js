@@ -43,18 +43,17 @@ module.exports = {
 
 
     async findAll(db, options = {}) {
-        let {addBackButton = true, unitPrice = "تومان"} = options;
+        let {addBackButton = true, unitPrice = "تومان", nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let key = `${this.dbKey}/${this.idKey}`;
-        let result = data.map(p => [Command.ToTlgButton(p.title, `${this.dbKey}/${p.id}/details`)]);
+        let result = data.map(p => [Command.ToTlgButton(p.title, nextCmd || `${this.dbKey}/${p.id}/details`)]);
         // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
 
         if (options.forAdmin == true) {
             result.push(Command.adminButtons.newServer())
         }
 
-        if (addBackButton) {
+        if (addBackButton && options.prevCmd) {
             result.push([{text: "برگشت ↩️", callback_data: options.prevCmd}])
         }
 

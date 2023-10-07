@@ -152,7 +152,7 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
 
         switch (cmdId.toLowerCase()) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -220,6 +220,11 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/server\/(.?)*\/update/)?.input:
             case cmdId.match(/server\/.*\/delete/)?.input:
                 return await Server.adminRoute(cmdId, wkv, message, TlgBot);
+
+            case cmdId.match(/payment\/(.?)*\/details/)?.input:
+            case cmdId.match(/payment\/(.?)*\/update/)?.input:
+            case cmdId.match(/payment\/.*\/delete/)?.input:
+                return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
         }
 
         let cmd = Command.find(cmdId);
@@ -232,12 +237,12 @@ async function onMessage(message, options = {}) {
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
 
-                // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
 
-            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot});
+            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: cmd.nextId});
             // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
@@ -258,13 +263,13 @@ async function onMessage(message, options = {}) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
 
-                // await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
-                let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
+                let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true, nextCmd: currentCmd.nextId});
             }
 
-            let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {});
+            let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {nextCmd: currentCmd.nextId});
 
             // let text2 = `buildCmdInfo text: ${text} && buttons: ${JSON.stringify(buttons)}`;
             // await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
@@ -306,7 +311,7 @@ function pushAdminButtons(buttons = [], isAdmin = false) {
 async function sendStartMessage(message, isAdmin) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
-        [{text: '📦  خرید اشتراک', callback_data: 'select_server'}],
+        [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
         [{text: '🛒 سوابق خرید', callback_data: 'order_history'}]
     ];
 
@@ -320,7 +325,8 @@ function sendServers(message) {
     let text = 'یک لوکیشین برای اتصال، انتخاب کنید ';
     let data = Server.getButtons(Plan.seed.cmd);
 
-    return TlgBot.sendInlineButtonRow(chatId, text, data, {method: 'editMessageText', messageId: message.message_id})
+    let options = {method: 'editMessageText', messageId: message.message_id};
+    return TlgBot.sendInlineButtonRow(chatId, text, data, options)
 }
 
 function sendPlans(message) {
