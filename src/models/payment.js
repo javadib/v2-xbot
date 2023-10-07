@@ -41,6 +41,14 @@ module.exports = {
     },
 
 
+    toInput(obj, options = {}) {
+        return Object.keys(obj).reduce((pv, cv, i) => {
+            pv += `${cv} : ${obj[cv]}\n`;
+
+            return pv;
+        }, '')
+    },
+
     async findAll(db, options = {}) {
         let {addBackButton = true, nextCmd} = options;
 

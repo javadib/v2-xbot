@@ -41,6 +41,13 @@ module.exports = {
         return this.seed.data.find(p => p.model.id == id)
     },
 
+    toInput(obj, options = {}) {
+        return Object.keys(obj).reduce((pv, cv, i) => {
+            pv += `${cv} : ${obj[cv]}\n`;
+
+            return pv;
+        }, '')
+    },
 
     async findAll(db, options = {}) {
         let {addBackButton = true, unitPrice = "تومان", nextCmd} = options;
@@ -64,14 +71,6 @@ module.exports = {
         let plans = await db.get(this.dbKey, {type: "json"}) || [];
 
         return plans.find(p => p.id == id);
-    },
-
-    toInput(obj, options = {}) {
-        return Object.keys(obj).reduce((pv, cv, i) => {
-            pv += `${cv} : ${obj[cv]}\n`;
-
-            return pv;
-        }, '')
     },
 
     async parseInput(input, options = {}) {
