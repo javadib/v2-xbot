@@ -22,7 +22,7 @@ module.exports = {
 
 🧑‍ نام کاربری: @${tUser.username}
 
-💰مبلغ پرداختی: ${sPlan.totalPrice.toLocaleString()} تومان
+💰مبلغ پرداختی: ${Number(sPlan?.totalPrice).toLocaleString()} تومان
  
 📦 نام پلن:  ${sPlan.name}
  
@@ -40,13 +40,15 @@ module.exports = {
         return msg;
     },
 
-    reviewInvoice(sPlan, sPayment) {
+    reviewInvoice(sPlan, sPayment, options = {}) {
+        let {unitPrice = 'تومان'} = options;
+
         let msg = `📃 پیش فاکتور  شما 
         
         
 📦 نام پلن: ${sPlan?.name}
 
-💎 قیمت :${sPlan?.totalPrice.toLocaleString()} 
+💎 قیمت :${Number(sPlan?.totalPrice).toLocaleString()} ${unitPrice}
       
 🔰  ${sPayment?.appKey} - ${sPayment?.appSecret}
 
