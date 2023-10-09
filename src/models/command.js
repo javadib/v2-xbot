@@ -38,6 +38,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "selectPlan",
+            "savedInSession": true,
             "buttons": "Server"
         },
         "selectPlan": {
@@ -55,6 +56,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "selectPayment",
+            "savedInSession": true,
             "buttons": "Plan"
         },
         "selectPayment": {
@@ -67,6 +69,24 @@ const Cmd = {
             },
             "asButton": true,
             "body": `💳 
+یک روش پرداخت رو انتخاب کنید`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "show_invoice",
+            "savedInSession": true,
+            "buttons": "Payment"
+        },
+        "showInvoice": {
+            "prevId": "selectPayment",
+            "id": "showInvoice",
+            "title": "پیش فاکتور",
+            "icon": `📃`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `📃
 یک روش پرداخت رو انتخاب کنید`,
             "successText": ``,
             "helpText": ``,
@@ -485,7 +505,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 idKey: "id",
                 textKey: "textIcon"
             }, undefined) :
-            await DataModel[cmd.buttons].findAll(db, opt);
+            await DataModel[cmd.buttons].findAll(db, cmd, opt);
     },
 
     async buildCmdInfo(db, cmd, DataModel, isAdmin, options = {}) {

@@ -160,13 +160,12 @@ ${this.toInput(plan)}
         return this.seed.data.find(p => p.model.id == id)
     },
 
-    async findAll(db, options = {}) {
+    async findAll(db, cmd, options = {}) {
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let key = `${this.dbKey}/${this.idKey}`;
-        let result = data.map(p => [Command.ToTlgButton(p.name, nextCmd || `${this.dbKey}/${p.id}/details`)]);
-        // let result = await data.ToTlgButtons({textKey: this.textKey, idKey: this.idKey}, options.prevCmd, false);
+        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let result = data.map(p => [Command.ToTlgButton(p.name, cbData(p))]);
 
         if (options.forAdmin == true) {
             result.push(this.seed.adminButtons.newPlan)

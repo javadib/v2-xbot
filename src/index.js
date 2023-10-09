@@ -6,10 +6,9 @@ Date.prototype.toUnixTIme = function () {
 
 Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBackButton = true) {
     let data = this.map(p => {
-        // let text = (typeof p.textIcon === 'function' ? p.textIcon() : p.textIcon) || p.title;
         let text = p.textIcon?.call(p) || p[textKey];
 
-        return [{text: text, callback_data: p[idKey]?.toString()}];
+        return [{text: text, callback_data: p[idKey].toString()}];
     }) || [];
 
     if (prevCmd && addBackButton) {
@@ -136,7 +135,7 @@ async function buildButtons(cmd, isAdmin, options = {}) {
             textKey: "textIcon",
             idKey: "id"
         }, prevCmd) :
-        await DataModel[cmd.buttons].findAll(wkv, opt);
+        await DataModel[cmd.buttons].findAll(wkv, cmd, opt);
 }
 
 /**
@@ -183,11 +182,11 @@ async function onMessage(message, options = {}) {
 
             case cmdId.match(/show_invoice/)?.input :
                 if (input) {
-                    let payment = {[Payment.seed.cmd]: input};
+                    let payment = {[Command.list.selectPayment.id]: input};
                     usrSession = await wkv.update(chatId, payment);
                 }
 
-                return await sendInvoice(message, usrSession, "show_invoice");
+                return await sendInvoice2(message, usrSession, "show_invoice");
 
             case cmdId.match(/order_history/)?.input :
                 if (input) {
@@ -230,7 +229,7 @@ async function onMessage(message, options = {}) {
         let cmd = Command.find(cmdId);
         if (cmd) {
             if (input) {
-                let data = {[cmd.id]: input};
+                let data = {[cmd.prevId]: input};
                 usrSession = await wkv.update(chatId, data);
             }
 
@@ -242,7 +241,7 @@ async function onMessage(message, options = {}) {
                 let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
             }
 
-            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: cmd.nextId});
+            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
             // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
@@ -270,9 +269,8 @@ async function onMessage(message, options = {}) {
             }
 
             let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {nextCmd: currentCmd.nextId});
+            // await TlgBot.sendToAdmin(`currentCmd buttons: ${JSON.stringify(buttons)}`, []);
 
-            // let text2 = `buildCmdInfo text: ${text} && buttons: ${JSON.stringify(buttons)}`;
-            // await TlgBot.sendInlineButtonRow(Config.bot.adminId, text2, []);
 
 
             let opt = {method: 'editMessageText', messageId: message.message_id}
@@ -287,7 +285,7 @@ async function onMessage(message, options = {}) {
 
 
         let result = usrSession.isLast === true ?
-            await saveOrder(message, usrSession) :
+            await saveOrder2(message, usrSession) :
             await sendStartMessage(message, isAdmin);
 
         // await sendInlineButtonRow(message.chat.id, `userSession values: ${JSON.stringify(usrSession)}`, [])
@@ -481,6 +479,43 @@ async function saveOrder(message, session, sendToAdmin = true, deleteSession = t
     return sentUserOrderRes
 }
 
+async function saveOrder2(message, session, sendToAdmin = true, deleteSession = true) {
+    let chatId = message.chat.id || message.chat_id;
+    let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
+    let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
+
+
+    await TlgBot.sendToAdmin(`saveOrder2 sPlan: ${JSON.stringify(sPlan)}`)
+    await TlgBot.sendToAdmin(`saveOrder2 sPayment: ${JSON.stringify(sPayment)}`)
+
+
+    let msg = await Order.savedOrderText(sPlan, sPayment);
+    let sentUserOrderRes = await TlgBot.sendInlineButtonRow(chatId, msg, [
+        // [{text: "پیگیری", callback_data: "send_message"}]
+    ]);
+
+    let data = await sentUserOrderRes.json() || {};
+    let newOrder = Object.assign({}, session, {
+        userId: chatId,
+        invoiceMessageId: data.result?.message_id,
+        payProofText: message.text,
+        createdAt: new Date().toUnixTIme()
+    })
+
+    let orderId = Order.getId(chatId);
+    await wkv.put(orderId, newOrder)
+
+
+    if (deleteSession) {
+        await wkv.delete(chatId)
+    }
+
+    if (sendToAdmin) {
+        await sendOrderToAdmin(message, session, orderId)
+    }
+    return sentUserOrderRes
+}
+
 async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
     let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd});
@@ -507,10 +542,13 @@ async function showOrders(message, nextCmd) {
     })
 }
 
-async function sendInvoice(message, session, nextCmd) {
+async function sendInvoice2(message, session, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
-    let sPlan = Plan.findById(session[Plan.seed.cmd])?.model;
-    let sPayment = Payment.findById(session[Payment.seed.cmd])?.model;
+    let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
+    let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
+
+    await TlgBot.sendToAdmin(`sendInvoice2 sPlan: typof ${typeof session} ${JSON.stringify(session)}`)
+    await TlgBot.sendToAdmin(`sendInvoice2 sPayment: ${JSON.stringify(session.selectPayment)}`)
 
     let msg = Order.reviewInvoice(sPlan, sPayment);
 

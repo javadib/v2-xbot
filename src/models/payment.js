@@ -49,11 +49,12 @@ module.exports = {
         }, '')
     },
 
-    async findAll(db, options = {}) {
+    async findAll(db, cmd, options = {}) {
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let result = data.map(p => [Command.ToTlgButton(p.title, nextCmd || `${this.dbKey}/${p.id}/details`)]);
+        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let result = data.map(p => [Command.ToTlgButton(p.title, cbData(p))]);
         // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
 
         if (options.forAdmin == true) {
