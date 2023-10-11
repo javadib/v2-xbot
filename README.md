@@ -30,11 +30,11 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting system.
    - Replace `YOUR_BOT_TOKEN` with your Telegram bot token.
 4) Replace whole codes with default cloudflare worker code.
 5) Save and deploy worker and send a `GET ` request to `/registerWebhook` path to register webhook of your bot. make sure you see `ok` in response.
-6) Send message to bot with admin account and manage all you need.
 #
 ![1](./docs/images/register-result.png)
 
-9) Done!
+6) Send message to bot with admin account and manage all you need.
+7) Done!
 #
 
 
