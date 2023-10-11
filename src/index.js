@@ -42,10 +42,6 @@ const SECRET = Config.bot.secret;
 const TlgBot = new Telegram(Config.bot.token);
 
 
-// Seed Sample Data
-// Plan.seedData(wkv).then(p => TlgBot.sendToAdmin('booted....', []).then(console.log))
-
-
 /**
  * Wait for requests to the worker
  */
@@ -162,9 +158,17 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/\/help/)?.input :
                 return await sendStartMessage(message, isAdmin);
 
+            case cmdId.match(/show_invoice/)?.input :
+                if (input) {
+                    let payment = {[Command.list.selectPayment.id]: input};
+                    usrSession = await wkv.update(chatId, payment);
+                }
+
+                return await sendInvoice2(message, usrSession, "show_invoice");
+
             case cmdId.match(/order_history/)?.input :
                 if (input) {
-                    let payment = {[Payment.seed.cmd]: input};
+                    let payment = {[Command.list.selectPayment.id]: input};
                     usrSession = await wkv.update(chatId, payment);
                 }
 
@@ -294,26 +298,6 @@ async function sendStartMessage(message, isAdmin) {
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
     return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow)
-}
-
-
-function sendServers(message) {
-    let chatId = message.chat.id;
-    let text = 'یک لوکیشین برای اتصال، انتخاب کنید ';
-    let data = Server.getButtons(Plan.seed.cmd);
-
-    let options = {method: 'editMessageText', messageId: message.message_id};
-    return TlgBot.sendInlineButtonRow(chatId, text, data, options)
-}
-
-function sendPlans(message) {
-    let chatId = message.chat.id;
-    let text = 'یکی از پلن های زیرو انتخاب کنید';
-
-    let buttons = Plan.getButtons(Payment.seed.cmd);
-
-
-    return TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 async function editButtons(message, buttons = []) {
@@ -494,17 +478,8 @@ async function sendInvoice2(message, session, nextCmd) {
 
     return await TlgBot.sendInlineButtonRow(chatId, msg, [
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
-        [{text: "برگشت ↩️", callback_data: Payment.seed.cmd}]
+        [{text: "برگشت ↩️", callback_data: Command.list.selectPayment.id}]
     ], {method: 'editMessageText', messageId: message.message_id})
-}
-
-function sendPayments(message, nextCmd) {
-    let chatId = message.chat.id;
-    let text = 'یک روش پرداخت رو انتخاب کنید';
-
-    let buttons = Payment.getButtons(nextCmd)
-
-    return TlgBot.sendInlineButtonRow(chatId, text, buttons, {method: 'editMessageText', messageId: message.message_id})
 }
 
 
