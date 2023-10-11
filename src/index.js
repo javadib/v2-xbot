@@ -162,33 +162,6 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/\/help/)?.input :
                 return await sendStartMessage(message, isAdmin);
 
-            case cmdId.match(/select_server/)?.input:
-                return await sendServers(message);
-
-            case cmdId.match(/select_plan/)?.input:
-                if (input) {
-                    let server = {[Server.seed.cmd]: input};
-                    usrSession = await wkv.update(chatId, server);
-                }
-
-                return await sendPlans(message);
-
-            case cmdId.match(/select_payment/)?.input:
-                if (input) {
-                    let plan = {[Command.list.selectPlan]: input};
-                    usrSession = await wkv.update(chatId, plan)
-                }
-
-                return await sendPayments(message, "show_invoice");
-
-            case cmdId.match(/show_invoice/)?.input :
-                if (input) {
-                    let payment = {[Command.list.selectPayment.id]: input};
-                    usrSession = await wkv.update(chatId, payment);
-                }
-
-                return await sendInvoice2(message, usrSession, "show_invoice");
-
             case cmdId.match(/order_history/)?.input :
                 if (input) {
                     let payment = {[Payment.seed.cmd]: input};
@@ -249,7 +222,7 @@ async function onMessage(message, options = {}) {
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.nextId) {
-                await wkv.update(chatId, {currentCmd: cmd.nextId})
+            await wkv.update(chatId, {currentCmd: cmd.nextId})
             // }
 
             return response
@@ -265,12 +238,18 @@ async function onMessage(message, options = {}) {
                 // await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
-                let preFunc = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true, nextCmd: currentCmd.nextId});
+                let preFunc = await DataModel[model]?.[func](handler, {
+                    pub: TlgBot,
+                    debug: true,
+                    nextCmd: currentCmd.nextId
+                });
             }
 
-            let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {nextCmd: currentCmd.nextId});
+            let {
+                text,
+                buttons
+            } = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {nextCmd: currentCmd.nextId});
             // await TlgBot.sendToAdmin(`currentCmd buttons: ${JSON.stringify(buttons)}`, []);
-
 
 
             let opt = {method: 'editMessageText', messageId: message.message_id}

@@ -24,7 +24,7 @@ const Cmd = {
     },
     list: {
         "selectServer": {
-            "prevId": "manage",
+            "prevId": "/start",
             "id": "selectServer",
             "title": "انتخاب سرور",
             "icon": `📍`,
@@ -217,7 +217,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "buttons": []
         },
         "confirmDelete": {
-            "prevId": "confirmDelete",
+            "prevId": "managePlan",
             "id": "confirmDelete",
             "title": "ساخت پلن جدید",
             "icon": `📦 ➕`,
