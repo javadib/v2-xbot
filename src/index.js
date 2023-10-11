@@ -152,6 +152,7 @@ async function onMessage(message, options = {}) {
         let handler = {db: wkv, input: input || message.text, message, usrSession};
 
         // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId.toLowerCase()) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -254,7 +255,7 @@ async function onMessage(message, options = {}) {
             return response
         }
 
-        var [uCmdId, uInput] = usrSession.currentCmd?.split(';');
+        var [uCmdId, uInput] = usrSession.currentCmd?.split(';') || [];
         let currentCmd = Command.find(uCmdId);
 
         if (currentCmd) {
@@ -309,7 +310,7 @@ async function sendStartMessage(message, isAdmin) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
-        [{text: '🛒 سوابق خرید', callback_data: 'order_history'}]
+        // [{text: '🛒 سوابق خرید', callback_data: 'order_history'}]
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
@@ -437,7 +438,7 @@ async function rejectOrder(message) {
 
 async function sendOrderToAdmin2(message, session, orderId) {
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
-    let sPayment = await Payment.findById(session[Command.list.selectPayment.id]);
+    let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
     let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
 
     let buttons = admin.getNewOrderButtons(orderId);
@@ -479,7 +480,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 
 async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
-    let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd});
+    let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd, pub: TlgBot});
 
     // let data = await db.getWithMetadata(query);
     await TlgBot.sendInlineButtonRow(Config.bot.adminId, `gerOrders: ${JSON.stringify(uOrders)}`, [])

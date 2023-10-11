@@ -515,7 +515,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
     },
 
     find(id) {
-        return this.list[id]
+        return !id ? undefined : this.list[id]
     },
 
     findByIds(ids = [], filter, options = {}) {

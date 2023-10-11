@@ -117,7 +117,7 @@ module.exports = {
     },
 
     async create({db, input}, options = {}) {
-        await options.pub?.sendToAdmin(`before create: ${typeof input} && ${JSON.stringify(input)}`);
+        // await options.pub?.sendToAdmin(`before create: ${typeof input} && ${JSON.stringify(input)}`);
 
         let data = await this.parseInput(input, options);
 

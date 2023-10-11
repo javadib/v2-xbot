@@ -4,7 +4,18 @@
 [![Downloads](https://img.shields.io/github/downloads/javadib/v2-xbot/total.svg)](#)
 [![License](https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
+v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting system.
+#
+
+# Features
+- [x] Add new order
+- [x] Order history
+- [ ] Admin panel from bot
+- [ ] Apps & link (for users)
+- [ ] User Profile
+- [ ] Affiliate system
+- [ ] Ticketing system
+#
 
 # Get Started
 0) Create a cloudflare worker, Create a KV namespace & bind to `db` variable
@@ -32,15 +43,6 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting.
 # Custom Edition
 Under Development ...
 #
-
-# Features
-- [x] Add new order
-- [x] Order history
-- [ ] Admin panel from bot
-- [ ] Apps & link (for users) 
-- [ ] User Profile 
-- [ ] Affiliate system
-- [ ] Ticketing system
 
 
 

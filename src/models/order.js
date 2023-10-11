@@ -86,7 +86,7 @@ module.exports = {
         let query = `order:${chatId}:`;
         let orders = await db.list({prefix: query}) || [];
 
-        console.log(`orders: ${JSON.stringify(orders)}`);
+        await options.pub?.sendToAdmin(`orders: ${JSON.stringify(orders)}`, [])
 
 
         buttons = orders.keys.map(p => this.toButtons(p, options.nextCmd));
@@ -94,7 +94,8 @@ module.exports = {
         if (options.toButtons && options.nextCmd) {
         }
 
-        console.log(`buttons: ${JSON.stringify(buttons)}`);
+        await options.pub?.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, [])
+
 
 
         return {orders, buttons};
