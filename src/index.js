@@ -313,7 +313,7 @@ async function sendStartMessage(message, isAdmin) {
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
-    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage, buttonRow)
+    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow)
 }
 
 
