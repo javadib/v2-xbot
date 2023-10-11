@@ -11,7 +11,7 @@
 * some bug fix ([4265ae3](https://github.com/javadib/v2-xbot/commit/4265ae3))
 * buy workflow refactor ([5f05c3a](https://github.com/javadib/v2-xbot/commit/5f05c3a))
 * server.name to .title ([bba60d9](https://github.com/javadib/v2-xbot/commit/bba60d9))
-* plan deletebyId ([96ffde7](https://github.com/javadib/v2-xbot/commit/96ffde7))
+* plan deleteById method ([96ffde7](https://github.com/javadib/v2-xbot/commit/96ffde7))
 * create plan buttons ([f8709e5](https://github.com/javadib/v2-xbot/commit/f8709e5))
 * some bug & refactor ([746291a](https://github.com/javadib/v2-xbot/commit/746291a))
 * createPlan data map ([c1a9bfb](https://github.com/javadib/v2-xbot/commit/c1a9bfb))
