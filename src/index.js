@@ -356,8 +356,8 @@ async function confirmOrder(message) {
     let {model, userChatId, unixTime} = Order.parseId(orderId);
 
     let order = JSON.parse(await wkv.get(orderId)) || {};
-    let sPlan = Plan.findById(order[Plan.seed.cmd])?.model;
-    let sServer = Server.findById(order[Server.seed.cmd])?.model;
+    let sPlan = await Plan.findByIdDb(wkv, order[Command.list.selectPlan.id]);
+    let sServer = await Server.findByIdDb(wkv, order[Command.list.selectServer.id]);
 
     let opt = {}
     if (order.invoiceMessageId) {
@@ -366,7 +366,7 @@ async function confirmOrder(message) {
 
     let hiddify = new Hiddify();
     let accOpt = {customName: `${sServer.remark}-${userChatId}-${new Date().toUnixTIme()}`}
-    let res = await hiddify.createAccount(sPlan, sServer, userChatId, accOpt);
+    let res = await hiddify.createAccount(sPlan, sServer, userChatId, "", accOpt);
     let data = await res.json();
 
     //TODO: test me

@@ -33,7 +33,7 @@ module.exports = {
     },
 
     savedOrderText(sPlan, sPayment) {
-        let msg = `〽️ نام پلن: ${sPlan?.name}\n\n💎 قیمت پنل : ${sPlan?.totalPrice.toLocaleString()} \n\n💳 پرداخت: ${sPayment.title}\n\n\n`;
+        let msg = `〽️ نام پلن: ${sPlan?.name}\n\n💎 قیمت پنل : ${Number(sPlan?.totalPrice).toLocaleString()} \n\n💳 پرداخت: ${sPayment.title}\n\n\n`;
 
         msg += this.meta.templates.savedOrder.text;
 
