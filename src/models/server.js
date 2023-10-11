@@ -82,7 +82,7 @@ module.exports = {
 
             if (split.length < 1) return pv;
 
-            pv[split[0].trim()] = split[1].trimLeft().trimRight();
+            pv[split[0].trim()] = (split.length < 3 ? split[1] : split.slice(1).join(':')).trimLeft().trimRight();
 
             return pv;
         }, {})
@@ -117,8 +117,9 @@ module.exports = {
     },
 
     async create({db, input}, options = {}) {
+        await options.pub?.sendToAdmin(`before create: ${typeof input} && ${JSON.stringify(input)}`);
+
         let data = await this.parseInput(input, options);
-        // await options.pub.sendToAdmin(`after input: ${typeof data}`);
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 

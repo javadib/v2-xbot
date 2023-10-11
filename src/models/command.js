@@ -294,7 +294,6 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
             // textIcon() {
             //     return `${this.icon} ${this.title}`
             // },
-
             "asButton": false,
             "body": `✅ سرور شما با موفقیت ثبت شد.`,
             "successText": ``,
