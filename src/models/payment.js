@@ -114,12 +114,16 @@ module.exports = {
         return newData;
     },
 
+    invalidMessage: function () {
+        return `❌مقدار ارسالی ناقص است.
+✍️   لطفا موراد رو با دقت بخونید و تمام داده های درخواستی رو ارسال کنید`;
+    },
+
     async create({db, input}, options = {}) {
         let data = await this.parseInput(input, options);
 
         if (!data.title || !data.appKey || !data.appSecret || !data.url) {
-            let message = "مقدار ارسالی ناقص است. لطفا موارد رو با دقت بخونید و تمام داده های درخواستی رو ارسال کنید";
-            return Promise.reject({message: message})
+            return Promise.reject({message: this.invalidMessage()})
         }
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
