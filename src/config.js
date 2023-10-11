@@ -7,9 +7,9 @@ const config = {
     },
     bot: {
         name: "V2xBot",
-        adminId: 76458757, // آیدی عددی باشه و داخل "" نباشه
+        adminId: 11111111, // آیدی عددی باشه و داخل "" نباشه
         tlgSupport: "@YOUR_SUPPORT_USERNAME",
-        token: "5973895087:AAHsCXItupz_FWcqOnmGRzIuA8TCyZiXjPg",
+        token: "YOUR_BOT_TOKEN",
         webHook: '/endpoint',
         secret: "123456789wertyuiopxcvbnmDGHJKRTYIO", // A-Z, a-z, 0-9, _ and -
         welcomeMessage() {
