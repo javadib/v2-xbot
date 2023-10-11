@@ -234,7 +234,12 @@ ${this.toInput(plan)}
 
     async create({db, input}, options = {}) {
         let data = await this.parseInput(input, options);
-        // await options.pub.sendToAdmin(`after input: ${typeof data}`);
+
+        if (!data.name || !data.totalPrice || !data.maxDays || !data.volume) {
+            let message = "مقدار ارسالی ناقص است. لطفا موارد رو با دقت بخونید و تمام داده های درخواستی رو ارسال کنید";
+            return Promise.reject({message: message})
+        }
+
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 

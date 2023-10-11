@@ -118,8 +118,12 @@ module.exports = {
 
     async create({db, input}, options = {}) {
         // await options.pub?.sendToAdmin(`before create: ${typeof input} && ${JSON.stringify(input)}`);
-
         let data = await this.parseInput(input, options);
+
+        if (!data.title || !data.remark || !data.url) {
+            let message = "مقدار ارسالی ناقص است. لطفا موارد رو با دقت بخونید و تمام داده های درخواستی رو ارسال کنید";
+            return Promise.reject({message: message})
+        }
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 

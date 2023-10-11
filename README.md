@@ -10,7 +10,10 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting system.
 # Features
 - [x] Add new order
 - [x] Order history
-- [ ] Admin panel from bot
+- [x] Management
+  - Manage (CRUD) Panels in bot
+  - Manage (CRUD) Servers
+  - Manage (CRUD) Payment methods
 - [ ] Apps & link (for users)
 - [ ] User Profile
 - [ ] Affiliate system
