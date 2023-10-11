@@ -43,7 +43,7 @@ module.exports = {
     reviewInvoice(sPlan, sPayment, options = {}) {
         let {unitPrice = 'تومان'} = options;
 
-        let msg = `📃 پیش فاکتور  شما 
+        let msg = `📃 پیش فاکتور 
         
         
 📦 نام پلن: ${sPlan?.name}
