@@ -225,12 +225,9 @@ ${this.toInput(plan)}
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
         let newData = oldData.filter(p => p.id != input);
 
-        // await options.pub.sendToAdmin(`inputs: ${typeof newData}, && ${JSON.stringify(newData)}`);
-
-
         let saved = await db.put(this.dbKey, newData);
 
-        return newData;
+        return {ok: true, modelName: this.modelName};
     },
 
 

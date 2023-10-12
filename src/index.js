@@ -1,8 +1,11 @@
 "use strict";
 
 Object.prototype.transform = function (text) {
+    let keys = Object.keys(this);
 
-    Object.keys(this).forEach(k => {
+    if (keys.length <= 0) return text;
+
+    keys.forEach(k => {
         let re = new RegExp(`{${k}}`, 'gi');
         text = text.replaceAll(re, this[k])
     });
@@ -246,15 +249,16 @@ async function onMessage(message, options = {}) {
                 let {model, func} = cmd.preFuncData();
                 // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
-                vars = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
+                let result = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
+                vars = Object.assign({}, vars, typeof result === 'object'? result : {})
+                // await TlgBot.sendToAdmin(`vars: ${JSON.stringify(vars)}`)
             }
 
             let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
             // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-            let text1 = vars.transform(`${cmd.body}\n${cmd.helpText}`);
-            // await TlgBot.sendToAdmin(`text1: ${text1}`)
+            let text1 = (typeof vars === 'object'? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
 
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
