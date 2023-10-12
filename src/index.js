@@ -171,17 +171,18 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
                 return await Promise.resolve();
 
-            case cmdId.match(/\//)?.input :
+            // case cmdId.match(/\//)?.input :
             case cmdId.match(/\/start/)?.input :
             case cmdId.match(/\/help/)?.input :
-                return await sendStartMessage(message, isAdmin);
+                let opt = {method: 'editMessageText', messageId: message.message_id};
+                return await sendStartMessage(message, isAdmin, opt);
 
             case cmdId.match(/show_invoice/)?.input :
                 if (input) {
@@ -226,9 +227,10 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/.*\/delete/)?.input:
                 return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
 
-            case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
-            case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
-            case cmdId.match(/clientApp\/.*\/delete/)?.input:
+            case cmdId.match(/clientApp\/(.?)*\/details/i)?.input:
+            case cmdId.match(/clientApp\/(.?)*\/update/i)?.input:
+            case cmdId.match(/clientApp\/.*\/delete/i)?.input:
+                // await TlgBot.sendToAdmin(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
                 return await ClientApp.adminRoute(cmdId, handler, TlgBot);
         }
 
@@ -251,8 +253,7 @@ async function onMessage(message, options = {}) {
             // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-            let text1 = `${cmd.body}\n${cmd.helpText}`;
-            text1 = vars.transform(text1);
+            let text1 = vars.transform(`${cmd.body}\n${cmd.helpText}`);
             // await TlgBot.sendToAdmin(`text1: ${text1}`)
 
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
@@ -321,7 +322,7 @@ function pushAdminButtons(buttons = [], isAdmin = false) {
     return buttons;
 }
 
-async function sendStartMessage(message, isAdmin) {
+async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
@@ -330,7 +331,7 @@ async function sendStartMessage(message, isAdmin) {
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
-    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow)
+    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow, options)
 }
 
 async function editButtons(message, buttons = []) {

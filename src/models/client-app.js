@@ -241,7 +241,7 @@ const clientApp = {
 
         switch (action) {
             case action.match(/details/)?.input:
-                actions = isAdmin ? Command.adminButtons.actions(this.dbKey, dbModel.id) : [];
+                actions = Command.adminButtons.actions(this.dbKey, dbModel.id);
                 actions.push(Command.backButton(this.manageId));
 
                 text = ` ${Command.list.manageClientApp.icon} ${this.modelName} ${dbModel.title}
