@@ -80,6 +80,50 @@ const Cmd = {
             "savedInSession": true,
             "buttons": "Payment"
         },
+        "selectClientApp": {
+            "prevId": "/start",
+            "id": "selectClientApp",
+            "title": "مشاهده نرم‌افزار",
+            "icon": `🔗`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `🔗 
+برای اتصال، یکی از نرم‌افزار‌های زیر رو دانلود و نصب کنید:`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "viewClientApp",
+            "savedInSession": true,
+            "buttons": "ClientApp"
+        },
+        "viewClientApp": {
+            "prevId": "selectClientApp",
+            "id": "viewClientApp",
+            "title": "مشاهده جزییات",
+            "icon": `🔗`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `{icon}  جزییات نرم‌افزار {title}
+           
+برای دانلود نرم‌افزار از لینک زیر استفاده کنید:             
+{url} 
+`,
+            "successText": ``,
+            "helpText": ``,
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "preFunc": 'ClientApp;viewById',
+            "nextId": "",
+            "savedInSession": false ,
+            "buttons": []
+        },
         "showInvoice": {
             "prevId": "selectPayment",
             "id": "showInvoice",
@@ -485,12 +529,12 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
             "prevId": "manage",
             "id": "manageClientApp",
             "title": "مدیریت نرم‌افزارها",
-            "icon": `🈸`,
+            "icon": `🔗`,
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
             "asButton": true,
-            "body": `🈸 
+            "body": `🔗 
 
 روی یک دکمه ضربه بزنید یا   
  از دکمه "نرم‌افزار جدید" برای ثبت داده استفاده کنید:`,
@@ -504,13 +548,13 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
             "prevId": "manageClientApp",
             "id": "newClientApp",
             "title": "ساخت نرم‌افزار جدید",
-            "icon": `🈸 ➕`,
+            "icon": `🔗 ➕`,
             textIcon() {
                 return `${this.icon} ${this.title}`
             },
 
             "asButton": true,
-            "body": `🈸 ➕ 
+            "body": `🔗 ➕ 
 
 یک درگاه طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
                     
@@ -605,7 +649,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
         ];
     },
 
-    backButton(cbData, text, options = {}) {
+    backButton(cbData, text) {
         return [{text: text || "برگشت ↩️", callback_data: cbData}];
     },
 

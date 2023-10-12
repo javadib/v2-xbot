@@ -8,6 +8,7 @@ const clientApp = {
     idKey: "id",
     textKey: "title",
     modelName: "نرم‌افزار",
+    textIcon: "🔗",
     seed: {
         name: 'Seed clientApp',
         data: [
@@ -114,12 +115,10 @@ const clientApp = {
     },
 
 
-    toInput(obj, options = {}) {
-        return Object.keys(obj).reduce((pv, cv, i) => {
-            pv += `${cv} : ${obj[cv]}\n`;
+    async viewById({db, input, message, usrSession, isAdmin}, options = {}) {
+        let model = await this.findByIdDb(db, input);
 
-            return pv;
-        }, '')
+        return model;
     },
 
     async findAll(db, cmd, options = {}) {
@@ -145,6 +144,14 @@ const clientApp = {
         let models = await db.get(this.dbKey, {type: "json"}) || [];
 
         return models.find(p => p.id == id);
+    },
+
+    toInput(obj) {
+        return Object.keys(obj).reduce((pv, cv, i) => {
+            pv += `${cv} : ${obj[cv]}\n`;
+
+            return pv;
+        }, '')
     },
 
     async parseInput(input, options = {}) {
@@ -217,7 +224,8 @@ const clientApp = {
         return oldData;
     },
 
-    async adminRoute(cmdId, db, message, pub) {
+    async adminRoute(cmdId, handler, pub) {
+        let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let dbModel = await this.findByIdDb(db, id);
@@ -232,7 +240,7 @@ const clientApp = {
 
         switch (action) {
             case action.match(/details/)?.input:
-                actions = Command.adminButtons.actions(this.dbKey, dbModel.id);
+                actions = isAdmin ? Command.adminButtons.actions(this.dbKey, dbModel.id) : [];
                 actions.push(Command.backButton(this.manageId));
 
                 text = ` ${Command.list.manageClientApp.icon} ${this.modelName} ${dbModel.title}
