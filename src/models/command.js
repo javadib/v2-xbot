@@ -42,6 +42,7 @@ const Cmd = {
             "preFunc": '',
             "nextId": "selectPlan",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Server"
         },
         "selectPlan": {
@@ -60,6 +61,7 @@ const Cmd = {
             "preFunc": '',
             "nextId": "selectPayment",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Plan"
         },
         "selectPayment": {
@@ -78,6 +80,7 @@ const Cmd = {
             "preFunc": '',
             "nextId": "show_invoice",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Payment"
         },
         "selectClientApp": {
@@ -96,6 +99,7 @@ const Cmd = {
             "preFunc": '',
             "nextId": "viewClientApp",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "ClientApp"
         },
         "viewClientApp": {

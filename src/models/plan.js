@@ -167,7 +167,8 @@ ${this.toInput(plan)}
         let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.name, cbData(p))]);
 
-        if (options.forAdmin == true) {
+        let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
+        if (canShowAdminButtons && options.forAdmin == true) {
             result.push(this.seed.adminButtons.newPlan)
         }
 

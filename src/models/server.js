@@ -59,7 +59,8 @@ module.exports = {
         });
         // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
 
-        if (options.forAdmin == true) {
+        let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
+        if (canShowAdminButtons && options.forAdmin == true) {
             result.push(Command.adminButtons.newServer())
         }
 

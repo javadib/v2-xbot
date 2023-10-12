@@ -171,8 +171,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
