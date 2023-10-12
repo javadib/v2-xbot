@@ -13,6 +13,9 @@ const Cmd = {
         newPayment() {
             return [{text: Cmd.list.newPayment.textIcon(), callback_data: Cmd.list.newPayment.id}]
         },
+        newClientApp() {
+            return [{text: Cmd.list.newClientApp.textIcon(), callback_data: Cmd.list.newClientApp.id}]
+        },
         actions(model, id) {
             return [
                 [
@@ -112,7 +115,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "",
-            "buttons": ["managePlan", "manageServer", "managePayment"]
+            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp"]
         },
         "managePlan": {
             "prevId": "manage",
@@ -476,6 +479,120 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
             },
             "nextId": "",
             "buttons": ["managePayment", "manage"]
+        },
+
+        "manageClientApp": {
+            "prevId": "manage",
+            "id": "manageClientApp",
+            "title": "مدیریت نرم‌افزارها",
+            "icon": `🈸`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `🈸 
+
+روی یک دکمه ضربه بزنید یا
+ از دکمه "نرم‌افزار جدید" برای ثبت داده استفاده کنید:`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "",
+            "buttons": "ClientApp"
+        },
+        "newClientApp": {
+            "prevId": "manageClientApp",
+            "id": "newClientApp",
+            "title": "ساخت نرم‌افزار جدید",
+            "icon": `🈸 ➕`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `🈸 ➕ 
+
+یک درگاه طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+                    
+title: ${"عنوان نرم‌افزار".replaceAll(" ", "_")}
+icon: ${"آیکون نرم‌افزار".replaceAll(" ", "_")} 
+url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")} 
+`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "createClientApp",
+            "buttons": []
+        },
+        "createClientApp": {
+            "prevId": "manageClientApp",
+            "id": "createClientApp",
+            "asButton": false,
+            "body": `✅ نرم‌افزار شما با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;create",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["manageClientApp", "manage"]
+        },
+        "doUpdateClientApp": {
+            "prevId": "manageClientApp",
+            "id": "doUpdateClientApp",
+            "asButton": false,
+            "body": `✅ نرم‌افزار شما با موفقیت آپدیت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;doUpdate",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["manageClientApp", "manage"]
+        },
+        "deleteClientApp": {
+            "prevId": "manageClientApp",
+            "id": "deleteClientApp",
+            "title": "حذف نرم‌افزار",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": ``,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "confirmDeleteClientApp",
+            "buttons": []
+        },
+        "confirmDeleteClientApp": {
+            "prevId": "manageClientApp",
+            "id": "confirmDeleteClientApp",
+            "title": "حذف نرم‌افزار",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `{modelName} با موفقیت حذف شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;deleteById",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "buttons": ["manageClientApp", "manage"]
         },
     },
 

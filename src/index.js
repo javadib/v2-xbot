@@ -26,9 +26,10 @@ const Order = require('./models/order');
 const Payment = require('./models/payment');
 const admin = require("./models/admin");
 const Admin = require('./models/admin');
+const ClientApp = require('./models/client-app');
 const Command = require('./models/command');
 
-const DataModel = {Plan, Order, Payment, Server};
+const DataModel = {Plan, Order, Payment, Server, ClientApp};
 
 const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
@@ -202,6 +203,11 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/(.?)*\/update/)?.input:
             case cmdId.match(/payment\/.*\/delete/)?.input:
                 return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
+
+            case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
+            case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
+            case cmdId.match(/clientApp\/.*\/delete/)?.input:
+                return await ClientApp.adminRoute(cmdId, wkv, message, TlgBot);
         }
 
         let cmd = Command.find(cmdId);
