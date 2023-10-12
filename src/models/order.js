@@ -15,7 +15,7 @@ module.exports = {
         },
     },
 
-    adminNewOrder(tUser, sPlan, sPayment, message) {
+    adminNewOrderText(tUser, sPlan, sPayment, message) {
         let msg = `💳 خرید جدید ( کارت به کارت )
 
 💡آیدی کاربر: ${tUser.id}
@@ -40,7 +40,7 @@ module.exports = {
         return msg;
     },
 
-    reviewInvoice(sPlan, sPayment, options = {}) {
+    reviewInvoiceText(sPlan, sPayment, options = {}) {
         let {unitPrice = 'تومان'} = options;
 
         let msg = `📃 پیش فاکتور 

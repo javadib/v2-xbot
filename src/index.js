@@ -440,7 +440,7 @@ async function rejectOrder(message) {
 async function sendOrderToAdmin2(message, session, orderId) {
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
     let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
-    let msg = Order.adminNewOrder(message.chat, sPlan, sPayment, message);
+    let msg = Order.adminNewOrderText(message.chat, sPlan, sPayment, message);
 
     let buttons = admin.getNewOrderButtons(orderId);
 
@@ -510,7 +510,7 @@ async function sendInvoice2(message, session, nextCmd) {
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
     let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
 
-    let msg = Order.reviewInvoice(sPlan, sPayment);
+    let msg = Order.reviewInvoiceText(sPlan, sPayment);
 
     await wkv.update(chatId, {lastCmd: "show_invoice", isLast: true});
 
