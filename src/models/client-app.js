@@ -223,7 +223,6 @@ const clientApp = {
         let dbModel = await this.findByIdDb(db, id);
         // await pub.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
 
-
         if (!dbModel) {
             return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
