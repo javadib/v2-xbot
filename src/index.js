@@ -37,6 +37,7 @@ const wkv = new wKV(db);
 const Hiddify = require("./modules/hiddify");
 const Telegram = require("./modules/telegram");
 
+const SEED = "/seed"
 const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
@@ -50,6 +51,9 @@ addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
+        case SEED:
+            event.respondWith(seedDb(event))
+            break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
             break;
@@ -64,6 +68,15 @@ addEventListener('fetch', async event => {
             break;
     }
 })
+
+async function seedDb(event) {
+    let clientApps = await ClientApp.seedDb(wkv);
+
+    await TlgBot.sendToAdmin(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
+
+    return new Response(JSON.stringify(clientApps))
+
+}
 
 /**
  * Handle requests to WEBHOOK

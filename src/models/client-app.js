@@ -14,7 +14,7 @@ const clientApp = {
             {
                 model: {
                     "id": 1,
-                    "title": "iOS - v2rayNG",
+                    "title": "Android - v2rayNG",
                     "icon": "📟",
                     "isActive": true,
                     "url": "https://play.google.com/store/apps/details?id=com.v2ray.ang&hl=en&gl=US",
@@ -107,6 +107,10 @@ const clientApp = {
     newFunc: Command.adminButtons.newClientApp,
     confirmDeleteId: Command.list.confirmDeleteClientApp.id,
     managePaymentId: Command.list.manageClientApp.id,
+
+    async seedDb(db) {
+        return await db.put(this.dbKey, this.seed.data.map(p => p.model))
+    },
 
 
     toInput(obj, options = {}) {
