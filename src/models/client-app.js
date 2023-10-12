@@ -4,7 +4,7 @@ const Command = require("./command");
 const Config = require("../config");
 
 const clientApp = {
-    dbKey: "ClientApp",
+    dbKey: "clientApp",
     idKey: "id",
     textKey: "title",
     modelName: "نرم‌افزار",
@@ -106,7 +106,8 @@ const clientApp = {
 
     newFunc: Command.adminButtons.newClientApp,
     confirmDeleteId: Command.list.confirmDeleteClientApp.id,
-    managePaymentId: Command.list.manageClientApp.id,
+    manageId: Command.list.manageClientApp.id,
+    doUpdateId: Command.list.doUpdateClientApp.id,
 
     async seedDb(db) {
         return await db.put(this.dbKey, this.seed.data.map(p => p.model))
@@ -220,17 +221,12 @@ const clientApp = {
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let dbModel = await this.findByIdDb(db, id);
-
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
+        // await pub.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
 
 
         if (!dbModel) {
             return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
-
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
         let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
@@ -238,17 +234,17 @@ const clientApp = {
         switch (action) {
             case action.match(/details/)?.input:
                 actions = Command.adminButtons.actions(this.dbKey, dbModel.id);
-                actions.push(Command.backButton(this.managePaymentId));
+                actions.push(Command.backButton(this.manageId));
 
-                text = ` ${Command.list.managePayment.icon} ${this.modelName} ${dbModel.title}
+                text = ` ${Command.list.manageClientApp.icon} ${this.modelName} ${dbModel.title}
                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
                 return await pub.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
-                let doUpdate = `${Command.list.doUpdatePayment.id};${dbModel.id}`;
+                let doUpdate = `${this.doUpdateId};${dbModel.id}`;
                 actions = [];
-                actions.push(Command.backButton(this.managePaymentId));
+                actions.push(Command.backButton(this.manageId));
                 text = `✏️ مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
                 
 بقیه موارد تغییری نخواهند کرد:
@@ -265,7 +261,7 @@ ${this.toInput(dbModel)}
 
             case action.match(/delete/)?.input:
                 let doDelete = `${this.confirmDeleteId};${dbModel.id}`;
-                actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.managePaymentId})
+                actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
                 actions.push(Command.backButton("/start"));
                 text = ` آیا از حذف ${this.modelName} ${dbModel.title} مطمئنید؟`;
                 var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
