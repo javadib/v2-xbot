@@ -126,8 +126,6 @@ module.exports = {
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 
-        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
-
         let newData = {
             "id": new Date().toUnixTIme(),
             "title": data.title,
@@ -148,17 +146,11 @@ module.exports = {
         let payment = await this.findByIdDb(db, id);
         let confirmDeleteId = Command.list.confirmDeletePayment.id;
         let managePaymentId = Command.list.managePayment.id;
-
-
         // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
-
 
         if (!payment) {
             return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
-
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
         let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
