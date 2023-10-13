@@ -122,7 +122,7 @@ module.exports = {
     async create({db, input}, options = {}) {
         let data = await this.parseInput(input, options);
 
-        if (!data.title || !data.appKey || !data.appSecret || !data.url) {
+        if (!data.title || !data.appKey || !data.appSecret) {
             return Promise.reject({message: this.invalidMessage()})
         }
 
