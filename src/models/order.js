@@ -3,6 +3,9 @@
 const index = require('../index');
 
 module.exports = {
+    dbKey: "order",
+    idKey: "id",
+    modelName: "سفارش",
     meta: {
         cmd: 'save_order',
         prev_cmd: 'select_payment',
@@ -60,11 +63,11 @@ module.exports = {
     },
 
     getId(chatId) {
-        return `order:${chatId}:${new Date().toUnixTIme()}`;
+        return `${this.dbKey}:${chatId}`;
     },
 
     parseId(id) {
-        let [model, userChatId, unixTime] = id.split(':')
+        let [model, userChatId, unixTime] = id.split(':') || []
 
         return {model, userChatId, unixTime};
     },
@@ -99,7 +102,51 @@ module.exports = {
 
 
         return {orders, buttons};
-    }
+    },
+
+    async findByIdDb(db, chatId, id, options = {}) {
+        let oId = this.getId(chatId);
+        let models = await db.get(oId, {type: "json"}) || [];
+        // await options.pub?.sendToAdmin(`findByIdDb: ${oId} && ${JSON.stringify(models)}`)
+
+        return models.find(p => p.id == id);
+    },
+
+    async updateByIdDb(db, chatId, id, data, options = {}) {
+        let oId = this.getId(chatId);
+        let oldData = await db.get(oId, {type: "json"}) || [];
+        let currentModel = oldData.find(p => p.id == id);
+
+        if (!currentModel) {
+            return Promise.reject({message: `${this.modelName} برای ویرایش پیدا نشد!`})
+        }
+
+        data.id = id;
+        currentModel = Object.assign(currentModel, data);
+        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+
+        await db.put(oId, oldData)
+
+        return currentModel;
+    },
+
+    async doUpdate({db, input, message, usrSession}, options = {}) {
+        let chatId = message.chat_id || message.chat.id;
+        let newData = await this.parseInput(message.text, {});
+        newData.id = input;
+
+        return this.updateByIdDb(db, chatId, input, newData, options)
+    },
+
+    async deleteById({db, input}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let newData = oldData.filter(p => p.id != input);
+
+        let saved = await db.put(this.dbKey, newData);
+
+        return {ok: true, modelName: this.modelName};
+    },
+
 
 }
 

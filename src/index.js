@@ -174,8 +174,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        // await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -346,20 +346,19 @@ async function editButtons(message, buttons = []) {
 }
 
 async function confirmOrder(message) {
-    let values = message.text.split(';');
+    let [model, userChatId, orderId] = message.text.split(';') || [];
     let chatId = message.chat_id || message.chat.id;
-    let orderId = values[1];
 
-    if (!orderId) {
+    if (!orderId || !userChatId) {
         let text = `سفارشی برای پردازش پیدا نشد!`;
-        return await TlgBot.sendInlineButtonRow(Config.bot.adminId, text, [])
+        return await TlgBot.sendInlineButtonRow(chatId, text, [])
     }
 
-    let {model, userChatId, unixTime} = Order.parseId(orderId);
-
-    let order = JSON.parse(await wkv.get(orderId)) || {};
+    // let order = JSON.parse(await wkv.get(orderId)) || {};
+    let order = await Order.findByIdDb(wkv, userChatId, orderId, {pub: TlgBot})
     let sPlan = await Plan.findByIdDb(wkv, order[Command.list.selectPlan.id]);
     let sServer = await Server.findByIdDb(wkv, order[Command.list.selectServer.id]);
+
 
     let opt = {}
     if (order.invoiceMessageId) {
@@ -382,7 +381,8 @@ async function confirmOrder(message) {
         });
     }
 
-    await wkv.update(orderId, {accountName: accOpt.customName})
+    // await wkv.update(orderId, {accountName: accOpt.customName})
+    await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName})
 
     let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
     let response = await TlgBot.sendInlineButtonRow(userChatId, accountText, [
@@ -399,30 +399,29 @@ async function confirmOrder(message) {
 
 
 async function rejectOrder(message) {
-    let values = message.text.split(';');
+    let [model, userChatId, orderId] = message.text.split(';') || [];
 
-    if (values.length < 2) {
+    if (!userChatId || !orderId) {
         return await TlgBot.sendInlineButtonRow(Config.bot.adminId, `یوزر برای ارسال پیام پیدا نشد!`, [])
     }
 
     let opt = {}
-    let orderId = values[1];
-    let {model, userChatId, unixTime} = Order.parseId(orderId);
 
-    let order = JSON.parse(await wkv.get(orderId)) || {};
+    // let order = JSON.parse(await wkv.get(orderId)) || {};
+    let order = await Order.findByIdDb(wkv, userChatId, orderId)
+
     if (order.invoiceMessageId) {
         opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
     }
 
-    await wkv.update(orderId, {rejected: true});
+    // await wkv.update(orderId, {rejected: true});
+    await Order.updateByIdDb(wkv, userChatId, orderId, {rejected: true})
 
     let text = `سفارش شما رد شد! 
 برای بررسی مجدد، اطلاعات پرداخت رو برای پشتیبانی ارسال کنید  🙏
     
     ${Config.bot.tlgSupport}
-    
-    
-    `;
+`;
     let response = await TlgBot.sendInlineButtonRow(Number(userChatId), text, [
         [
             {text: "✨  شروع مجدد", callback_data: "/start"}
@@ -438,11 +437,12 @@ async function rejectOrder(message) {
 }
 
 async function sendOrderToAdmin2(message, session, orderId) {
+    let chatId = message.chat.id || message.chat_id;
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
     let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
     let msg = Order.adminNewOrderText(message.chat, sPlan, sPayment, message);
 
-    let buttons = admin.getNewOrderButtons(orderId);
+    let buttons = admin.getNewOrderButtons(chatId, orderId);
 
     return await TlgBot.sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
@@ -459,14 +459,18 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 
     let data = await sentUserOrderRes.json() || {};
     let newOrder = Object.assign({}, session, {
-        userId: chatId,
+        id: new Date().toUnixTIme(),
+        // userId: chatId,
         invoiceMessageId: data.result?.message_id,
         payProofText: message.text,
         createdAt: new Date().toUnixTIme()
     })
+    delete newOrder.isLast;
+    delete newOrder.lastCmd;
+    delete newOrder.currentCmd;
 
     let orderId = Order.getId(chatId);
-    await wkv.put(orderId, newOrder)
+    await wkv.push(orderId, newOrder)
 
 
     if (deleteSession) {
@@ -474,7 +478,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
     }
 
     if (sendToAdmin) {
-        await sendOrderToAdmin2(message, session, orderId)
+        await sendOrderToAdmin2(message, session, newOrder.id)
     }
     return sentUserOrderRes
 }

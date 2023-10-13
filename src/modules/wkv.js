@@ -43,4 +43,13 @@ module.exports = class wKV {
 
         return newData;
     }
+
+    async push(key, data, options = {}) {
+        let oldData = await this.get(key, {type: "json"}) || [];
+        oldData.push(data);
+
+        await this.put(key, oldData)
+
+        return oldData;
+    }
 }
