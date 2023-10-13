@@ -63,9 +63,9 @@ addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
-        case SEED:
-            event.respondWith(seedDb(event))
-            break;
+        // case SEED:
+        //     event.respondWith(seedDb(event))
+        //     break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
             break;
@@ -96,7 +96,10 @@ async function seedDb(event) {
  */
 async function handleWebhook(event) {
     // Check secret
-    if (event.request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== SECRET) {
+    let xSecret = event.request.headers?.get('X-Telegram-Bot-Api-Secret-Token');
+    if (xSecret !== SECRET) {
+        await TlgBot.sendToAdmin(`handleWebhook: Unauthorized - ${SECRET} && tlg secret: ${xSecret}`, [])
+
         return new Response('Unauthorized', {status: 403})
     }
 
@@ -171,8 +174,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -182,7 +185,7 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/\/start/)?.input :
             case cmdId.match(/\/help/)?.input :
                 let opt = {method: 'editMessageText', messageId: message.message_id};
-                return await sendStartMessage(message, isAdmin, opt);
+                return await sendStartMessage(message, isAdmin);
 
             case cmdId.match(/show_invoice/)?.input :
                 if (input) {
@@ -233,9 +236,9 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/.*\/delete/)?.input:
                 return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
 
-            case cmdId.match(/clientApp\/(.?)*\/details/i)?.input:
-            case cmdId.match(/clientApp\/(.?)*\/update/i)?.input:
-            case cmdId.match(/clientApp\/.*\/delete/i)?.input:
+            case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
+            case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
+            case cmdId.match(/clientApp\/.*\/delete/)?.input:
                 // await TlgBot.sendToAdmin(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
                 return await ClientApp.adminRoute(cmdId, handler, TlgBot);
         }
@@ -332,9 +335,9 @@ async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
-        // [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
-        // [{text: '🛒 سوابق خرید', callback_data: Command.list.userOrders}],
-        // [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
+        [{text: '🛒 سوابق_خرید', callback_data: 'order_history'}],
+        [{text: '🛒 سوابق خرید', callback_data: Command.list.userOrders.id}],
+        [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
@@ -485,25 +488,18 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 
 async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
-    let orders = await Order.findByUser(wkv, chatId) || []
-    // orders.map(o => Command.ToTlgButton(o.))
-    let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd, pub: TlgBot});
-
-    let tt = `uOrders: ${JSON.stringify(uOrders)}, buttons: ${JSON.stringify(buttons)}`;
+    let orders = await Order.findByUser(wkv, chatId, p => p.accountName) || []
+    let buttons = orders.map(o => Command.ToTlgButton(o.accountName, o.id));
+    let opt = {method: 'editMessageText', messageId: message.message_id};
 
     if (buttons.length < 1) {
         let text = `هیچ سفارش ثبت شده ای ندارید!`;
-        return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {
-            method: 'editMessageText',
-            messageId: message.message_id
-        })
+
+        return await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt)
     }
 
     let text = `لیست سفارشات تون 👇`;
-    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, {
-        method: 'editMessageText',
-        messageId: message.message_id
-    })
+    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt)
 }
 
 async function sendInvoice2(message, session, nextCmd) {
