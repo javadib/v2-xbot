@@ -683,7 +683,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
         return !id ? undefined : this.list[id]
     },
 
-    findByIds(ids = [], filter, options = {}) {
+    findByIds(ids = [], filter = p => p, options = {}) {
         let result = ids.map(id => this.list[id]).filter(p => p).filter(filter) || [];
 
         return result;

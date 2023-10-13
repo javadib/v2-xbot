@@ -104,6 +104,13 @@ module.exports = {
         return {orders, buttons};
     },
 
+    async findByUser(db, chatId, filter = p => p, options = {}) {
+        let oId = this.getId(chatId);
+        let models = await db.get(oId, {type: "json"}) || [];
+
+        return models.filter(filter);
+    },
+
     async findByIdDb(db, chatId, id, options = {}) {
         let oId = this.getId(chatId);
         let models = await db.get(oId, {type: "json"}) || [];

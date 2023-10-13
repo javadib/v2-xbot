@@ -31,7 +31,6 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
     return data;
 }
 
-
 const Config = require('./config');
 const Plan = require('./models/plan');
 const Server = require('./models/server');
@@ -174,8 +173,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        await TlgBot.sendInlineButtonRow(chatId, `DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -256,7 +255,7 @@ async function onMessage(message, options = {}) {
                 // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let result = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
-                vars = Object.assign({}, vars, typeof result === 'object'? result : {})
+                vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
                 // await TlgBot.sendToAdmin(`vars: ${JSON.stringify(vars)}`)
             }
 
@@ -264,7 +263,7 @@ async function onMessage(message, options = {}) {
             // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
-            let text1 = (typeof vars === 'object'? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
+            let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
 
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
@@ -336,8 +335,8 @@ async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
+        [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
-        // [{text: '🛒 سوابق خرید', callback_data: 'order_history'}]
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
@@ -491,14 +490,10 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 
 async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
+    let orders = await Order.findByUser(wkv, chatId) || []
     let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd, pub: TlgBot});
 
-    // let data = await db.getWithMetadata(query);
-    await TlgBot.sendInlineButtonRow(Config.bot.adminId, `gerOrders: ${JSON.stringify(uOrders)}`, [])
-
-
     let tt = `uOrders: ${JSON.stringify(uOrders)}, buttons: ${JSON.stringify(buttons)}`;
-    await TlgBot.sendInlineButtonRow(chatId, tt);
 
     if (buttons.length < 1) {
         let text = `هیچ سفارش ثبت شده ای ندارید!`;
