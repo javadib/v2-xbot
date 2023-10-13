@@ -91,7 +91,12 @@ module.exports = {
 
     async doUpdate({db, input, message, usrSession}, options = {}) {
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-        let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
+        let currentModel = oldData.find(p => p.id == input);
+
+        if (!currentModel) {
+            return Promise.reject({message: `${this.modelName} برای ویرایش پیدا نشد!`})
+        }
+
         let newData = await this.parseInput(message.text, {});
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);

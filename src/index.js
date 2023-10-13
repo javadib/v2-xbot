@@ -204,11 +204,17 @@ async function onMessage(message, options = {}) {
                 return await showOrders(message, "show_invoice");
 
             case cmdId.match(/confirm_order/)?.input:
-                //TODO: admin ACL
+                if (!isAdmin) {
+                    return Promise.reject({message: Config.bot.accessDenied()})
+                }
+
                 return await confirmOrder(message, usrSession);
 
             case cmdId.match(/reject_order/)?.input:
-                //TODO: admin ACL check
+                if (!isAdmin) {
+                    return Promise.reject({message: Config.bot.accessDenied()})
+                }
+
                 return await rejectOrder(message, usrSession, options)
 
             case cmdId.match(/status_link/)?.input :
