@@ -145,6 +145,24 @@ const Cmd = {
             "nextId": "show_invoice",
             "buttons": "Payment"
         },
+        "userOrders": {
+            "prevId": "/",
+            "id": "userOrders",
+            "title": "سوابق خرید",
+            "icon": `🛒`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `🛒
+لیست سفارشات تون 👇`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "orderDetails",
+            "savedInSession": true,
+            "buttons": "Order"
+        },
 
 
         "manage": {

@@ -154,9 +154,7 @@ async function buildButtons(cmd, isAdmin, options = {}) {
 
     return Array.isArray(cmd.buttons) ?
         await Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons({
-            textKey: "textIcon",
-            idKey: "id"
-        }, prevCmd) :
+            textKey: "textIcon", idKey: "id"}, prevCmd) :
         await DataModel[cmd.buttons].findAll(wkv, cmd, opt);
 }
 
@@ -242,6 +240,7 @@ async function onMessage(message, options = {}) {
                 return await ClientApp.adminRoute(cmdId, handler, TlgBot);
         }
 
+        let vars = {};
         let cmd = Command.find(cmdId);
         if (cmd) {
             if (input) {
@@ -249,7 +248,6 @@ async function onMessage(message, options = {}) {
                 usrSession = await wkv.update(chatId, data);
             }
 
-            let vars = {};
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
                 // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
@@ -264,7 +262,6 @@ async function onMessage(message, options = {}) {
 
             let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
-
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.nextId) {
@@ -280,7 +277,6 @@ async function onMessage(message, options = {}) {
         if (currentCmd) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
-
                 // await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
@@ -289,12 +285,13 @@ async function onMessage(message, options = {}) {
                     debug: true,
                     nextCmd: currentCmd.nextId
                 });
+                vars = Object.assign({}, vars, typeof preFunc === 'object' ? preFunc : {})
+
             }
 
-            let {
-                text,
-                buttons
-            } = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, {nextCmd: currentCmd.nextId});
+            let buildOpt = {nextCmd: currentCmd.nextId};
+            let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, buildOpt);
+            text = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             // await TlgBot.sendToAdmin(`currentCmd buttons: ${JSON.stringify(buttons)}`, []);
 
 
@@ -335,8 +332,9 @@ async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
-        [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
-        [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
+        // [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
+        // [{text: '🛒 سوابق خرید', callback_data: Command.list.userOrders}],
+        // [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
     ];
 
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
@@ -411,15 +409,12 @@ async function rejectOrder(message) {
     }
 
     let opt = {}
-
-    // let order = JSON.parse(await wkv.get(orderId)) || {};
     let order = await Order.findByIdDb(wkv, userChatId, orderId)
 
     if (order.invoiceMessageId) {
         opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
     }
 
-    // await wkv.update(orderId, {rejected: true});
     await Order.updateByIdDb(wkv, userChatId, orderId, {rejected: true})
 
     let text = `سفارش شما رد شد! 
@@ -491,6 +486,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 async function showOrders(message, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
     let orders = await Order.findByUser(wkv, chatId) || []
+    // orders.map(o => Command.ToTlgButton(o.))
     let {uOrders, buttons} = await Order.gerOrders(wkv, chatId, {toButtons: true, nextCmd: nextCmd, pub: TlgBot});
 
     let tt = `uOrders: ${JSON.stringify(uOrders)}, buttons: ${JSON.stringify(buttons)}`;
