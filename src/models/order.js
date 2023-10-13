@@ -1,7 +1,5 @@
 'use strict';
 
-const index = require('../index');
-
 module.exports = {
     dbKey: "order",
     idKey: "id",
@@ -156,7 +154,3 @@ module.exports = {
 
 
 }
-
-
-
-
