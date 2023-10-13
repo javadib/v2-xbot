@@ -63,9 +63,9 @@ addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
-        // case SEED:
-        //     event.respondWith(seedDb(event))
-        //     break;
+        case SEED:
+            event.respondWith(seedDb(event))
+            break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
             break;
@@ -174,8 +174,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
