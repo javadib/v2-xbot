@@ -191,7 +191,7 @@ ${this.toInput(payment)}
             case action.match(/delete/)?.input:
                 let doDelete = `${confirmDeleteId};${payment.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: managePaymentId})
-                actions.push(Command.backButton("/start"));
+                actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${payment.title} مطمئنید؟`;
                 var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 

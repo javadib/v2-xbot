@@ -76,7 +76,7 @@ module.exports = {
         data.push([{text: text, callback_data: `${nextCmd};${order.id}`}])
 
         if (addBackButton) {
-            data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+            data.push([{text: "برگشت ↩️", callback_data: "/editedStart"}])
         }
 
         return data;

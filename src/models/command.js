@@ -27,7 +27,7 @@ const Cmd = {
     },
     list: {
         "selectServer": {
-            "prevId": "/start",
+            "prevId": "/editedStart",
             "id": "selectServer",
             "title": "انتخاب سرور",
             "icon": `📍`,
@@ -84,7 +84,7 @@ const Cmd = {
             "buttons": "Payment"
         },
         "selectClientApp": {
-            "prevId": "/start",
+            "prevId": "/editedStart",
             "id": "selectClientApp",
             "title": "مشاهده نرم‌افزار",
             "icon": `🔗`,
@@ -166,7 +166,7 @@ const Cmd = {
 
 
         "manage": {
-            "prevId": "/start",
+            "prevId": "/editedStart",
             "id": "manage",
             "title": "مدیریت",
             "icon": `👨‍💼`,

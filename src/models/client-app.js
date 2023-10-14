@@ -272,7 +272,7 @@ ${this.toInput(dbModel)}
             case action.match(/delete/)?.input:
                 let doDelete = `${this.confirmDeleteId};${dbModel.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
-                actions.push(Command.backButton("/start"));
+                actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${dbModel.title} مطمئنید؟`;
                 var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 

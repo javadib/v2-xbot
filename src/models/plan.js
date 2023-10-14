@@ -121,7 +121,7 @@ ${this.toInput(plan)}
                 let doDelete = `${confirmDeleteId};${plan.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: managePlanId})
                 // var actions = this.seed.adminButtons.actions(plan?.id);
-                actions.push(Command.backButton("/start"));
+                actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${plan.name} مطمئنید؟`;
                 var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 

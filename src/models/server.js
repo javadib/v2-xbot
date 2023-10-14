@@ -12,7 +12,7 @@ module.exports = {
     seed: {
         name: 'Seed Servers',
         cmd: 'select_server',
-        prev_cmd: '/start',
+        prev_cmd: '/editedStart',
         data: [
             {
                 model: {
@@ -31,7 +31,7 @@ module.exports = {
         })
 
         if (addBackButton) {
-            data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+            data.push([{text: "برگشت ↩️", callback_data: "/editedStart"}])
         }
 
         return data;
