@@ -1,9 +1,11 @@
 'use strict';
 
-module.exports = {
+const Command = require("./command");
+const order =  {
     dbKey: "order",
     idKey: "id",
     modelName: "سفارش",
+    textIcon: "🛒",
     meta: {
         cmd: 'save_order',
         prev_cmd: 'select_payment',
@@ -14,6 +16,22 @@ module.exports = {
 بعد از تایید پرداخت، کانفیگ براتون توسط ربات ارسال میشه 🙏`,
             }
         },
+    },
+
+    // newFunc: Command.adminButtons.newClientApp,
+    // confirmDeleteId: Command.list.confirmDeleteClientApp.id,
+    manageId: Command.list.manageClientApp.id,
+    // doUpdateId: Command.list.doUpdateClientApp.id,
+
+    actions: {
+        details(chatId, id) {
+            return [
+                [
+                    {text: `♻️ تمدید اکانت`, callback_data: `${order.getId(chatId)}/${id}/continuation`},
+                    // {text: `♻️ سفارش مجدد`, callback_data: `${order.getId(chatId)}/${id}/reOrder`}
+                ]
+            ]
+        }
     },
 
     adminNewOrderText(tUser, sPlan, sPayment, message) {
@@ -98,7 +116,6 @@ module.exports = {
         await options.pub?.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, [])
 
 
-
         return {orders, buttons};
     },
 
@@ -154,4 +171,69 @@ module.exports = {
     },
 
 
+    async route(cmdId, handler, pub) {
+        let {db, message, usrSession, isAdmin} = handler;
+        let chatId = message.chat_id || message.chat.id;
+        let [model, id, action] = cmdId.split('/');
+        let dbModel = await this.findByIdDb(db, chatId, id);
+
+        if (!dbModel) {
+            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+        }
+
+        let text, actions;
+        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+
+        switch (action) {
+            case action.match(/details/)?.input:
+                actions = this.actions.details(chatId, dbModel.id);
+                actions.push(Command.backButton(this.manageId));
+                // await pub.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
+
+                text = ` ${order.textIcon} مشخصات اکانت ${dbModel.accountName}
+                
+شناسه اکانت:  {uuid}
+
+حجم اکانت:  {volume}
+
+روز باقیمانده:  {(accountDate)}
+
+از عملیات زیر برای این اکانت می تونید استفاده کنید
+`;
+                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+
+            case action.match(/update/)?.input:
+                let doUpdate = `${this.doUpdateId};${dbModel.id}`;
+                actions = [];
+                actions.push(Command.backButton(this.manageId));
+                text = `✏️ مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
+                
+بقیه موارد تغییری نخواهند کرد:
+
+مشخصات فعلی ${this.modelName} : 
+
+${this.toInput(dbModel)}
+                `;
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+
+                await db.update(chatId, {currentCmd: doUpdate})
+
+                return res
+
+            case action.match(/delete/)?.input:
+                let doDelete = `${this.confirmDeleteId};${dbModel.id}`;
+                actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
+                actions.push(Command.backButton("/editedStart"));
+                text = ` آیا از حذف ${this.modelName} ${dbModel.title} مطمئنید؟`;
+                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+
+                // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
+
+                return res
+        }
+    },
+
+
 }
+
+module.exports = order;

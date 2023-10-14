@@ -175,8 +175,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -205,7 +205,7 @@ async function onMessage(message, options = {}) {
                     usrSession = await wkv.update(chatId, payment);
                 }
 
-                return await showOrders(message, "/editedStart", "show_invoice");
+                return await showOrders(message, "/editedStart");
 
             case cmdId.match(/confirm_order/)?.input:
                 if (!isAdmin) {
@@ -245,6 +245,13 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/clientApp\/.*\/delete/)?.input:
                 // await TlgBot.sendToAdmin(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
                 return await ClientApp.adminRoute(cmdId, handler, TlgBot);
+
+            case cmdId.match(/order\/(.?)*\/details/)?.input:
+            case cmdId.match(/order\/(.?)*\/continuation/)?.input:
+            case cmdId.match(/order\/(.?)*\/update/)?.input:
+            case cmdId.match(/order\/.*\/delete/)?.input:
+                // await TlgBot.sendToAdmin(`order.route: ${JSON.stringify(cmdId)}`, []);
+                return await Order.route(cmdId, handler, TlgBot);
         }
 
         let vars = {};
@@ -339,8 +346,7 @@ async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
-        [{text: '🛒 سوابق_خرید', callback_data: 'order_history'}],
-        [{text: '🛒 سوابق خرید', callback_data: Command.list.userOrders.id}],
+        [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
     ];
 
@@ -488,16 +494,16 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
     return sentUserOrderRes
 }
 
-async function showOrders(message, backCmdId, nextCmd) {
+async function showOrders(message, backCmdId) {
     let chatId = message.chat_id || message.chat.id;
     let orders = await Order.findByUser(wkv, chatId, p => p.accountName, {pub: TlgBot}) || []
-    // await TlgBot.sendToAdmin(`showOrders orders: ${JSON.stringify(orders)}`, [])
-
-    let buttons = orders.filter(p => p.accountName).map(o => [Command.ToTlgButton(o.accountName, o.id)]);
+    let buttons = orders.filter(p => p.accountName).map(o => {
+        let cbData = `${Order.dbKey}/${o.id}/details`;
+        return [Command.ToTlgButton(o.accountName, cbData)];
+    });
     buttons.push(Command.backButton(backCmdId))
-    // await TlgBot.sendToAdmin(`showOrders buttons: ${JSON.stringify(buttons)}`, [])
-    let opt = {method: 'editMessageText', messageId: message.message_id};
 
+    let opt = {method: 'editMessageText', messageId: message.message_id};
     let text = buttons.length < 2 ? `هیچ سفارش ثبت شده ای ندارید!` : `لیست سفارشات تون 👇`;
     return await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt)
 }

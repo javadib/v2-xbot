@@ -154,7 +154,8 @@ const Cmd = {
                 return `${this.icon} ${this.title}`
             },
             "asButton": true,
-            "body": `🛒
+            "body": `    textIcon: "🔗",
+
 لیست سفارشات تون 👇`,
             "successText": ``,
             "helpText": ``,
