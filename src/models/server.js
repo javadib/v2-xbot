@@ -37,6 +37,11 @@ module.exports = {
         return data;
     },
 
+    getHiddifyBaseurl(url, urlPath) {
+        return urlPath ? `${url.protocol}//${url.hostname}/${url.pathname.split('/')[1]}/${urlPath}/` :
+            `${url.protocol}//${url.hostname}/${url.pathname.split('/')[1]}/`;
+    },
+
     findById(id) {
         return this.seed.data.find(p => p.model.id == id)
     },

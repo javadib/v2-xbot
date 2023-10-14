@@ -1,7 +1,10 @@
 'use strict';
 
 const Command = require("./command");
-const order =  {
+const Hiddify = require("../modules/hiddify");
+const Server = require("./server");
+
+const order = {
     dbKey: "order",
     idKey: "id",
     modelName: "سفارش",
@@ -171,39 +174,51 @@ const order =  {
     },
 
 
-    async route(cmdId, handler, pub) {
+    async route(cmdId, orderModel, server, handler, pub) {
         let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
-        let dbModel = await this.findByIdDb(db, chatId, id);
 
-        if (!dbModel) {
+        if (!orderModel) {
             return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
-        let text, actions;
+        let text, actions, res;
         let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
 
         switch (action) {
             case action.match(/details/)?.input:
-                actions = this.actions.details(chatId, dbModel.id);
+                actions = this.actions.details(chatId, orderModel.id);
                 actions.push(Command.backButton(this.manageId));
-                // await pub.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
 
-                text = ` ${order.textIcon} مشخصات اکانت ${dbModel.accountName}
+                let hiddify = new Hiddify();
+                let data = { "baseUrl": Server.getHiddifyBaseurl(new URL(server.url), orderModel.uId) }
+                res = await hiddify.getAccountInfo(orderModel.uId, data, {pub: pub})
+
+                if (res.status != 200) {
+                    let text = ` مشکلی در گرفتن اطلاعات کاربر پیش اومد! لطفا مجدد امتحان کنید
+در صورت تکرار این مشکل رو به تیم پشتیبانی گزارش بدید 🙏`;
+                    text += `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
+
+                    return Promise.reject({message: text})
+                }
+
+                let accInfo = await res.json();
+                text = ` ${order.textIcon} مشخصات اکانت ${orderModel.accountName}
                 
-شناسه اکانت:  {uuid}
+🤷‍♂️ شناسه اکانت :  {uuid}
 
-حجم اکانت:  {volume}
+🎚 حجم اکانت :  {volumeText}
 
-روز باقیمانده:  {(accountDate)}
+📅 تعداد روز :  {dayText}
 
 از عملیات زیر برای این اکانت می تونید استفاده کنید
 `;
+                text = accInfo.data?.transform(text);
                 return await pub.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
-                let doUpdate = `${this.doUpdateId};${dbModel.id}`;
+                let doUpdate = `${this.doUpdateId};${orderModel.id}`;
                 actions = [];
                 actions.push(Command.backButton(this.manageId));
                 text = `✏️ مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
@@ -212,20 +227,20 @@ const order =  {
 
 مشخصات فعلی ${this.modelName} : 
 
-${this.toInput(dbModel)}
+${this.toInput(orderModel)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
                 return res
 
             case action.match(/delete/)?.input:
-                let doDelete = `${this.confirmDeleteId};${dbModel.id}`;
+                let doDelete = `${this.confirmDeleteId};${orderModel.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
                 actions.push(Command.backButton("/editedStart"));
-                text = ` آیا از حذف ${this.modelName} ${dbModel.title} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                text = ` آیا از حذف ${this.modelName} ${orderModel.title} مطمئنید؟`;
+                res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 

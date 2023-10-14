@@ -26,4 +26,11 @@ module.exports = class Hiddify {
 
         return new wFetch().request(url, 'POST', raw, {"Content-Type": "application/json"});
     }
+
+    async getAccountInfo(uid, data, options = {}) {
+        let url = new URL(`/hiddify/${uid}/details`, this.baseUrl);
+        // await options.pub?.sendToAdmin(`getAccountInfo url: ${url.href}`);
+
+        return new wFetch().request(url, 'POST', data, {"Content-Type": "application/json"});
+    }
 }

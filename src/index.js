@@ -1,5 +1,7 @@
 "use strict";
 
+import server from "./models/server";
+
 Object.prototype.transform = function (text) {
     let keys = Object.keys(this);
 
@@ -175,8 +177,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
-        await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -251,7 +253,12 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/order\/(.?)*\/update/)?.input:
             case cmdId.match(/order\/.*\/delete/)?.input:
                 // await TlgBot.sendToAdmin(`order.route: ${JSON.stringify(cmdId)}`, []);
-                return await Order.route(cmdId, handler, TlgBot);
+
+                let [model, id, action] = cmdId.split('/');
+                let orderModel = await Order.findByIdDb(wkv, chatId, id);
+                let server = await Server.findByIdDb(wkv, orderModel[Command.list.selectServer.id]);
+
+                return await Order.route(cmdId, orderModel, server, handler, TlgBot);
         }
 
         let vars = {};
@@ -394,7 +401,7 @@ async function confirmOrder(message) {
     }
 
     let data = await res.json() || {};
-    await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(data)}`)
+    // await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(data)}`)
 
     await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName, uId: data.data?.uuid})
 
