@@ -183,9 +183,12 @@ async function onMessage(message, options = {}) {
                 return await Promise.resolve();
 
             // case cmdId.match(/\//)?.input :
+            case "/editedStart" :
+                let opt = {method: 'editMessageText', messageId: message.message_id};
+                return await sendStartMessage(message, isAdmin, opt);
+
             case cmdId.match(/\/start/)?.input :
             case cmdId.match(/\/help/)?.input :
-                let opt = {method: 'editMessageText', messageId: message.message_id};
                 return await sendStartMessage(message, isAdmin);
 
             case cmdId.match(/show_invoice/)?.input :
@@ -202,7 +205,7 @@ async function onMessage(message, options = {}) {
                     usrSession = await wkv.update(chatId, payment);
                 }
 
-                return await showOrders(message, "show_invoice");
+                return await showOrders(message, "/editedStart", "show_invoice");
 
             case cmdId.match(/confirm_order/)?.input:
                 if (!isAdmin) {
@@ -355,7 +358,7 @@ async function editButtons(message, buttons = []) {
 async function confirmOrder(message) {
     let [model, userChatId, orderId] = message.text.split(';') || [];
     let chatId = message.chat_id || message.chat.id;
-    await TlgBot.sendToAdmin(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
+    // await TlgBot.sendToAdmin(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
 
     if (!orderId || !userChatId) {
         let text = `سفارشی برای پردازش پیدا نشد!`;
@@ -485,19 +488,17 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
     return sentUserOrderRes
 }
 
-async function showOrders(message, nextCmd) {
+async function showOrders(message, backCmdId, nextCmd) {
     let chatId = message.chat_id || message.chat.id;
-    let orders = await Order.findByUser(wkv, chatId, p => p.accountName) || []
-    let buttons = orders.map(o => Command.ToTlgButton(o.accountName, o.id));
+    let orders = await Order.findByUser(wkv, chatId, p => p.accountName, {pub: TlgBot}) || []
+    // await TlgBot.sendToAdmin(`showOrders orders: ${JSON.stringify(orders)}`, [])
+
+    let buttons = orders.filter(p => p.accountName).map(o => [Command.ToTlgButton(o.accountName, o.id)]);
+    buttons.push(Command.backButton(backCmdId))
+    // await TlgBot.sendToAdmin(`showOrders buttons: ${JSON.stringify(buttons)}`, [])
     let opt = {method: 'editMessageText', messageId: message.message_id};
 
-    if (buttons.length < 1) {
-        let text = `هیچ سفارش ثبت شده ای ندارید!`;
-
-        return await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt)
-    }
-
-    let text = `لیست سفارشات تون 👇`;
+    let text = buttons.length < 2 ? `هیچ سفارش ثبت شده ای ندارید!` : `لیست سفارشات تون 👇`;
     return await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt)
 }
 
