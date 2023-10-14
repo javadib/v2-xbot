@@ -157,7 +157,8 @@ async function buildButtons(cmd, isAdmin, options = {}) {
 
     return Array.isArray(cmd.buttons) ?
         await Command.findByIds(cmd.buttons, p => p.asButton).ToTlgButtons({
-            textKey: "textIcon", idKey: "id"}, prevCmd) :
+            textKey: "textIcon", idKey: "id"
+        }, prevCmd) :
         await DataModel[cmd.buttons].findAll(wkv, cmd, opt);
 }
 
@@ -354,13 +355,13 @@ async function editButtons(message, buttons = []) {
 async function confirmOrder(message) {
     let [model, userChatId, orderId] = message.text.split(';') || [];
     let chatId = message.chat_id || message.chat.id;
+    await TlgBot.sendToAdmin(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
 
     if (!orderId || !userChatId) {
         let text = `سفارشی برای پردازش پیدا نشد!`;
         return await TlgBot.sendInlineButtonRow(chatId, text, [])
     }
 
-    // let order = JSON.parse(await wkv.get(orderId)) || {};
     let order = await Order.findByIdDb(wkv, userChatId, orderId, {pub: TlgBot})
     let sPlan = await Plan.findByIdDb(wkv, order[Command.list.selectPlan.id]);
     let sServer = await Server.findByIdDb(wkv, order[Command.list.selectServer.id]);
@@ -372,22 +373,20 @@ async function confirmOrder(message) {
     }
 
     let hiddify = new Hiddify();
-    let accOpt = {customName: `${sServer.remark}-${userChatId}-${new Date().toUnixTIme()}`}
+    let accOpt = {customName: `${sServer.remark}-${userChatId}-${new Date().toUnixTIme()}`, logger: TlgBot}
     let res = await hiddify.createAccount(sPlan, sServer, userChatId, "", accOpt);
-    let data = await res.json();
+    // await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(res.status)} && ${await res.text()}`)
 
-    //TODO: test me
     if (res.status != 200) {
-        let text = `در ساخت اکانت برای کاربر مشکلی پیش اومد!
-        لطفا این موضوع رو پیگیری کنید  🙏`;
-        text += `\n\n ${await res.text()}`;
+        let text = `در ساخت اکانت برای کاربر مشکلی پیش اومد! لطفا مجدد امتحان کنید
+در صورت تکرار این مشکل رو به تیم پشتیبانی گزارش بدید 🙏`;
+        text += `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
 
-        return await TlgBot.sendInlineButtonRow(Config.bot.adminId, text, [], {
-            method: 'sendMessage', reply_to_message_id: chatId
-        });
+        return await TlgBot.sendToAdmin(text, [], {method: 'sendMessage', reply_to_message_id: chatId});
     }
 
-    // await wkv.update(orderId, {accountName: accOpt.customName})
+    let data = await res.json() || {};
+
     await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName})
 
     let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
