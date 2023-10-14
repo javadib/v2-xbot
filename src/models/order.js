@@ -20,7 +20,7 @@ const order =  {
 
     // newFunc: Command.adminButtons.newClientApp,
     // confirmDeleteId: Command.list.confirmDeleteClientApp.id,
-    manageId: Command.list.manageClientApp.id,
+    manageId: "order_history",
     // doUpdateId: Command.list.doUpdateClientApp.id,
 
     actions: {

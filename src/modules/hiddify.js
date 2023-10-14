@@ -1,5 +1,7 @@
 "use strict";
 
+// const uuidv4 = require("uuid").v4();
+
 const wFetch = require("./wfetch");
 
 
@@ -13,6 +15,7 @@ module.exports = class Hiddify {
         let url = new URL("/hiddify/create", this.baseUrl);
 
         let raw = {
+            // uuid: uuidv4(),
             "baseUrl": server.url,
             "name": options.customName || `${server.remark}-${userChatId}-${new Date().toUnixTIme()}`,
             "volume": plan.volume,

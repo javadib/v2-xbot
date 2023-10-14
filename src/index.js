@@ -384,7 +384,6 @@ async function confirmOrder(message) {
     let hiddify = new Hiddify();
     let accOpt = {customName: `${sServer.remark}-${userChatId}-${new Date().toUnixTIme()}`, logger: TlgBot}
     let res = await hiddify.createAccount(sPlan, sServer, userChatId, "", accOpt);
-    // await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(res.status)} && ${await res.text()}`)
 
     if (res.status != 200) {
         let text = `در ساخت اکانت برای کاربر مشکلی پیش اومد! لطفا مجدد امتحان کنید
@@ -395,8 +394,9 @@ async function confirmOrder(message) {
     }
 
     let data = await res.json() || {};
+    await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(data)}`)
 
-    await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName})
+    await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName, uId: data.data?.uuid})
 
     let accountText = admin.newAccountText(sPlan, data.userUrl, Config)
     let response = await TlgBot.sendInlineButtonRow(userChatId, accountText, [

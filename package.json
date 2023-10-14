@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy src/index.js --outdir dist/"
   },
   "dependencies": {
-    "hono": "^3.6.0"
+    "hono": "^3.6.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230821.0",
