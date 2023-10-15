@@ -204,13 +204,15 @@ const order = {
                 }
 
                 let accInfo = await res.json();
-                text = ` ${order.textIcon} مشخصات اکانت ${orderModel.accountName}
+                text = ` 
+${order.textIcon} مشخصات اکانت ${orderModel.accountName}
                 
 🤷‍♂️ شناسه اکانت :  {uuid}
 
 🎚 حجم اکانت :  {volumeText}
 
 📅 تعداد روز :  {dayText}
+
 
 از عملیات زیر برای این اکانت می تونید استفاده کنید
 `;
