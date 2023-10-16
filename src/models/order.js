@@ -28,9 +28,10 @@ const order = {
 
     actions: {
         details(chatId, id) {
+            let orderKey = order.dbKey; //`${order.getId(chatId)}`;
             return [
                 [
-                    {text: `♻️ تمدید اکانت`, callback_data: `${order.getId(chatId)}/${id}/continuation`},
+                    {text: `♻️ تمدید اکانت`, callback_data: `${orderKey}/${id}/continuation`},
                     // {text: `♻️ سفارش مجدد`, callback_data: `${order.getId(chatId)}/${id}/reOrder`}
                 ]
             ]
@@ -249,8 +250,6 @@ ${this.toInput(orderModel)}
                 return res
         }
     },
-
-
 }
 
 module.exports = order;

@@ -1,7 +1,5 @@
 "use strict";
 
-import server from "./models/server";
-
 Object.prototype.transform = function (text) {
     let keys = Object.keys(this);
 
@@ -178,7 +176,7 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendToAdmin(`DEBUG MODE - [cmdId, input]: ${JSON.stringify([cmdId, input])}`, [])
+        // await TlgBot.sendToAdmin(`DEBUG MODE -message.text: ${message.text}`, [])
         // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
 
         switch (cmdId) {
@@ -253,10 +251,15 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
             case cmdId.match(/order\/(.?)*\/update/)?.input:
             case cmdId.match(/order\/.*\/delete/)?.input:
-                // await TlgBot.sendToAdmin(`order.route: ${JSON.stringify(cmdId)}`, []);
+                // await TlgBot.sendToAdmin(`order.route - cmdId: ${cmdId}`, []);
 
                 let [model, id, action] = cmdId.split('/');
                 let orderModel = await Order.findByIdDb(wkv, chatId, id);
+
+                if (action == "continuation") {
+                    await extendAccount(message, orderModel, {})
+                }
+
                 let server = await Server.findByIdDb(wkv, orderModel[Command.list.selectServer.id]);
 
                 return await Order.route(cmdId, orderModel, server, handler, TlgBot);
@@ -476,6 +479,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
         // [{text: "پیگیری", callback_data: "send_message"}]
     ]);
 
+    //TODO: save price, maxDays to orderModel
     let data = await sentUserOrderRes.json() || {};
     let newOrder = Object.assign({}, session, {
         id: new Date().toUnixTIme(),
@@ -529,6 +533,24 @@ async function sendInvoice2(message, session, nextCmd) {
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
         [{text: "برگشت ↩️", callback_data: Command.list.selectPayment.id}]
     ], {method: 'editMessageText', messageId: message.message_id})
+}
+
+async function extendAccount(message, order, opt = {}) {
+    let chatId = message.chat_id || message.chat.id;
+    let invoiceSess = {
+        "currentCmd": "show_invoice",
+        "selectServer": order.selectServer,
+        "selectPlan": order.selectPlan,
+        "selectPayment": order.selectPayment,
+        "lastCmd": "show_invoice",
+        "extend": true,
+        "isLast": true
+    }
+
+
+    let usrSession = await wkv.put(chatId, invoiceSess);
+
+    await sendInvoice2(message, invoiceSess, "show_invoice")
 }
 
 
