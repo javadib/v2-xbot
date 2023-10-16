@@ -1,6 +1,7 @@
 "use strict";
 
-// const uuidv4 = require("uuid").v4();
+const { v4: uuidv4 } = require('uuid');
+
 
 const wFetch = require("./wfetch");
 
@@ -25,6 +26,23 @@ module.exports = class Hiddify {
         }
 
         return new wFetch().request(url, 'POST', raw, {"Content-Type": "application/json"});
+    }
+
+    async extendAccount(messasage, order, plan, server, uid, options = {}) {
+        let data  = {
+            "baseUrl": server.url,
+            "uuid": uuidv4(),
+            "name": order.accountName,
+            "usage_limit_GB": 201,
+            "package_days": 51,
+            "comment": null,
+            "mode": "no_reset",
+            "enable": false,
+            "telegram_id": chatdId
+        }
+
+        return new wFetch().request(url, 'POST', data, {"Content-Type": "application/json"});
+
     }
 
     async getAccountInfo(uid, data, options = {}) {

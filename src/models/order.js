@@ -64,9 +64,10 @@ const order = {
     },
 
     reviewInvoiceText(sPlan, sPayment, options = {}) {
-        let {unitPrice = 'تومان'} = options;
+        let {unitPrice = 'تومان', extendAcc} = options;
 
-        let msg = `📃 پیش فاکتور 
+        let headerText = extendAcc ? `📃 پیش فاکتور (تمدید)`: `📃 پیش فاکتور `;
+        let msg = `${headerText}
         
         
 📦 نام پلن: ${sPlan?.name}

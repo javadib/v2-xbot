@@ -238,7 +238,6 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             // textIcon() {
             //     return `${this.icon} ${this.title}`
             // },
-
             "asButton": false,
             "body": `✅ پلن شما با موفقیت ثبت شد.`,
             "successText": ``,
@@ -250,6 +249,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["managePlan", "manage"]
         },
         "doUpdate": {

@@ -268,7 +268,7 @@ ${this.toInput(plan)}
 
         await db.put(this.dbKey, oldData);
 
-        return oldData;
+        return newData;
     }
 }
 

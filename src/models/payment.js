@@ -142,7 +142,7 @@ module.exports = {
 
         await db.put(this.dbKey, oldData);
 
-        return oldData;
+        return newData;
     },
 
     async adminRoute(cmdId, db, message, pub) {

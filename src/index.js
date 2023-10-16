@@ -1,5 +1,32 @@
 "use strict";
 
+const Config = require('./config');
+const Plan = require('./models/plan');
+const Server = require('./models/server');
+const Order = require('./models/order');
+const Payment = require('./models/payment');
+const admin = require("./models/admin");
+const Admin = require('./models/admin');
+const ClientApp = require('./models/client-app');
+const Command = require('./models/command');
+
+const DataModel = {Plan, Order, Payment, Server, ClientApp};
+
+const wKV = require('./modules/wkv');
+const wkv = new wKV(db);
+
+const Hiddify = require("./modules/hiddify");
+const Telegram = require("./modules/telegram");
+
+const SEED = "/seed"
+const WEBHOOK = Config.bot.webHook
+const SECRET = Config.bot.secret;
+
+const TlgBot = new Telegram(Config.bot.token);
+
+
+
+
 Object.prototype.transform = function (text) {
     let keys = Object.keys(this);
 
@@ -30,30 +57,6 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
 
     return data;
 }
-
-const Config = require('./config');
-const Plan = require('./models/plan');
-const Server = require('./models/server');
-const Order = require('./models/order');
-const Payment = require('./models/payment');
-const admin = require("./models/admin");
-const Admin = require('./models/admin');
-const ClientApp = require('./models/client-app');
-const Command = require('./models/command');
-
-const DataModel = {Plan, Order, Payment, Server, ClientApp};
-
-const wKV = require('./modules/wkv');
-const wkv = new wKV(db);
-
-const Hiddify = require("./modules/hiddify");
-const Telegram = require("./modules/telegram");
-
-const SEED = "/seed"
-const WEBHOOK = Config.bot.webHook
-const SECRET = Config.bot.secret;
-
-const TlgBot = new Telegram(Config.bot.token);
 
 
 /**
@@ -257,7 +260,7 @@ async function onMessage(message, options = {}) {
                 let orderModel = await Order.findByIdDb(wkv, chatId, id);
 
                 if (action == "continuation") {
-                    await extendAccount(message, orderModel, {})
+                    await setExtendAccount(message, orderModel, {})
                 }
 
                 let server = await Server.findByIdDb(wkv, orderModel[Command.list.selectServer.id]);
@@ -283,9 +286,13 @@ async function onMessage(message, options = {}) {
             }
 
             let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
-            // await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
+            await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
 
-            let opt = {method: 'editMessageText', messageId: message.message_id, pub: TlgBot}
+            let opt = {pub: TlgBot}
+            opt = cmd.resultInNew ? opt : Object.assign({}, opt, {
+                method: 'editMessageText',
+                messageId: message.message_id
+            })
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
@@ -310,18 +317,25 @@ async function onMessage(message, options = {}) {
                     debug: true,
                     nextCmd: currentCmd.nextId
                 });
-                vars = Object.assign({}, vars, typeof preFunc === 'object' ? preFunc : {})
 
+                vars = Object.assign({}, vars, typeof preFunc === 'object' ? preFunc : {})
             }
 
             let buildOpt = {nextCmd: currentCmd.nextId};
             let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, buildOpt);
-            text = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
-            // await TlgBot.sendToAdmin(`currentCmd buttons: ${JSON.stringify(buttons)}`, []);
+            await TlgBot.sendToAdmin(`currentCmd {vars, text}: ${JSON.stringify({vars, text})}`, []);
 
 
-            let opt = {method: 'editMessageText', messageId: message.message_id}
-            let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, {});
+
+            text = (typeof vars === 'object' ? vars : {}).transform(text);
+
+
+            let opt = {pub: TlgBot}
+            opt = currentCmd.resultInNew ? opt : Object.assign({}, opt, {
+                method: 'editMessageText',
+                messageId: message.message_id
+            })
+            let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.nextId) {
             await wkv.update(chatId, {currentCmd: currentCmd.nextId})
@@ -378,19 +392,21 @@ async function confirmOrder(message) {
     // await TlgBot.sendToAdmin(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
 
     if (!orderId || !userChatId) {
-        let text = `سفارشی برای پردازش پیدا نشد!`;
+        let text = `اطلاعات ارسال شده ناقص است`;
         return await TlgBot.sendInlineButtonRow(chatId, text, [])
     }
 
     let order = await Order.findByIdDb(wkv, userChatId, orderId, {pub: TlgBot})
+    if (!order) {
+        let text = `سفارشی برای پردازش پیدا نشد!`;
+        let buttons = [];
+        buttons.push(Command.backButton("/start"));
+        return await TlgBot.sendInlineButtonRow(chatId, text, buttons)
+    }
+
     let sPlan = await Plan.findByIdDb(wkv, order[Command.list.selectPlan.id]);
     let sServer = await Server.findByIdDb(wkv, order[Command.list.selectServer.id]);
-
-
-    let opt = {}
-    if (order.invoiceMessageId) {
-        opt = {method: 'editMessageText', messageId: order.invoiceMessageId};
-    }
+    let opt = order.invoiceMessageId ? {method: 'editMessageText', messageId: order.invoiceMessageId} : {}
 
     let hiddify = new Hiddify();
     let accOpt = {customName: `${sServer.remark}-${userChatId}-${new Date().toUnixTIme()}`, logger: TlgBot}
@@ -399,9 +415,11 @@ async function confirmOrder(message) {
     if (res.status != 200) {
         let text = `در ساخت اکانت برای کاربر مشکلی پیش اومد! لطفا مجدد امتحان کنید
 در صورت تکرار این مشکل رو به تیم پشتیبانی گزارش بدید 🙏`;
-        text += `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
 
-        return await TlgBot.sendToAdmin(text, [], {method: 'sendMessage', reply_to_message_id: chatId});
+        return await TlgBot.sendInlineButtonRow(text, [], {method: 'sendMessage', reply_to_message_id: chatId});
+
+        // let adminText = text + `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
+        // return await TlgBot.sendToAdmin(adminText, []); //TODO: public support channel/Group
     }
 
     let data = await res.json() || {};
@@ -525,7 +543,7 @@ async function sendInvoice2(message, session, nextCmd) {
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
     let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
 
-    let msg = Order.reviewInvoiceText(sPlan, sPayment);
+    let msg = Order.reviewInvoiceText(sPlan, sPayment, {extendAcc: session.extend});
 
     await wkv.update(chatId, {lastCmd: "show_invoice", isLast: true});
 
@@ -535,7 +553,7 @@ async function sendInvoice2(message, session, nextCmd) {
     ], {method: 'editMessageText', messageId: message.message_id})
 }
 
-async function extendAccount(message, order, opt = {}) {
+async function setExtendAccount(message, order, opt = {}) {
     let chatId = message.chat_id || message.chat.id;
     let invoiceSess = {
         "currentCmd": "show_invoice",
@@ -546,7 +564,6 @@ async function extendAccount(message, order, opt = {}) {
         "extend": true,
         "isLast": true
     }
-
 
     let usrSession = await wkv.put(chatId, invoiceSess);
 

@@ -224,7 +224,7 @@ const clientApp = {
 
         await db.put(this.dbKey, oldData);
 
-        return oldData;
+        return newData;
     },
 
     async adminRoute(cmdId, handler, pub) {
