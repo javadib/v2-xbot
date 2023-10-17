@@ -23,8 +23,7 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-
-
+const Logger = TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -88,7 +87,7 @@ addEventListener('fetch', async event => {
 async function seedDb(event) {
     let clientApps = await ClientApp.seedDb(wkv);
 
-    await TlgBot.sendToAdmin(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
+    await Logger.log(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
 
     return new Response(JSON.stringify(clientApps))
 
@@ -102,7 +101,7 @@ async function handleWebhook(event) {
     // Check secret
     let xSecret = event.request.headers?.get('X-Telegram-Bot-Api-Secret-Token');
     if (xSecret !== SECRET) {
-        await TlgBot.sendToAdmin(`handleWebhook: Unauthorized - ${SECRET} && tlg secret: ${xSecret}`, [])
+        await Logger.log(`handleWebhook: Unauthorized - ${SECRET} && tlg secret: ${xSecret}`, {})
 
         return new Response('Unauthorized', {status: 403})
     }
@@ -179,8 +178,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        // await TlgBot.sendToAdmin(`DEBUG MODE -message.text: ${message.text}`, [])
-        // await TlgBot.sendToAdmin(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, [])
+        await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
+        await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -247,14 +246,14 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
             case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
             case cmdId.match(/clientApp\/.*\/delete/)?.input:
-                // await TlgBot.sendToAdmin(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
+                // await Logger.log(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
                 return await ClientApp.adminRoute(cmdId, handler, TlgBot);
 
             case cmdId.match(/order\/(.?)*\/details/)?.input:
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
             case cmdId.match(/order\/(.?)*\/update/)?.input:
             case cmdId.match(/order\/.*\/delete/)?.input:
-                // await TlgBot.sendToAdmin(`order.route - cmdId: ${cmdId}`, []);
+                // await Logger.log(`order.route - cmdId: ${cmdId}`, []);
 
                 let [model, id, action] = cmdId.split('/');
                 let orderModel = await Order.findByIdDb(wkv, chatId, id);
@@ -278,21 +277,23 @@ async function onMessage(message, options = {}) {
 
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
-                // await TlgBot.sendToAdmin(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                // await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let result = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
                 vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
-                // await TlgBot.sendToAdmin(`vars: ${JSON.stringify(vars)}`)
+                // await Logger.log(`vars: ${JSON.stringify(vars)}`)
             }
 
             let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
-            await TlgBot.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, []);
+            // await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {pub: TlgBot}
             opt = cmd.resultInNew ? opt : Object.assign({}, opt, {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
+            await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
+
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
@@ -309,7 +310,7 @@ async function onMessage(message, options = {}) {
         if (currentCmd) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
-                // await TlgBot.sendToAdmin(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                // await Logger.log(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {
@@ -323,18 +324,16 @@ async function onMessage(message, options = {}) {
 
             let buildOpt = {nextCmd: currentCmd.nextId};
             let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, buildOpt);
-            await TlgBot.sendToAdmin(`currentCmd {vars, text}: ${JSON.stringify({vars, text})}`, []);
-
-
-
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
-
-            let opt = {pub: TlgBot}
+            let opt = {pub: TlgBot, Logger}
             opt = currentCmd.resultInNew ? opt : Object.assign({}, opt, {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
+
+            await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
+
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.nextId) {
@@ -389,7 +388,7 @@ async function editButtons(message, buttons = []) {
 async function confirmOrder(message) {
     let [model, userChatId, orderId] = message.text.split(';') || [];
     let chatId = message.chat_id || message.chat.id;
-    // await TlgBot.sendToAdmin(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
+    // await Logger.log(`confirmOrder vars: ${JSON.stringify([model, userChatId, orderId])}`)
 
     if (!orderId || !userChatId) {
         let text = `اطلاعات ارسال شده ناقص است`;
@@ -419,11 +418,11 @@ async function confirmOrder(message) {
         return await TlgBot.sendInlineButtonRow(text, [], {method: 'sendMessage', reply_to_message_id: chatId});
 
         // let adminText = text + `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
-        // return await TlgBot.sendToAdmin(adminText, []); //TODO: public support channel/Group
+        // return await Logger.log(adminText, []); //TODO: public support channel/Group
     }
 
     let data = await res.json() || {};
-    // await TlgBot.sendToAdmin(`confirmOrder res: ${JSON.stringify(data)}`)
+    // await Logger.log(`confirmOrder res: ${JSON.stringify(data)}`)
 
     await Order.updateByIdDb(wkv, userChatId, orderId, {accountName: accOpt.customName, uId: data.data?.uuid})
 

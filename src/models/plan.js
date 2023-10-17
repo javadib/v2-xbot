@@ -217,10 +217,11 @@ ${this.toInput(plan)}
 
 
         let newData = await this.parseInput(message.text, {});
+        await options.Logger?.log(`doUpdate newData: ${JSON.stringify(newData)}`);
+
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);
-
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
@@ -243,7 +244,12 @@ ${this.toInput(plan)}
     },
 
     async create({db, input}, options = {}) {
+        await options.Logger?.log(`create input: ${JSON.stringify(input)}`);
+
         let data = await this.parseInput(input, options);
+
+        await options.Logger?.log(`create data: ${JSON.stringify(data)}`);
+
 
         if (!data.name || !data.totalPrice || !data.maxDays || !data.volume) {
             return Promise.reject({message: this.invalidMessage()})
@@ -251,8 +257,7 @@ ${this.toInput(plan)}
 
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-
-        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+        await options.Logger?.log(`oldData: ${JSON.stringify(oldData)}`);
 
         let newData = {
             "id": new Date().toUnixTIme(),

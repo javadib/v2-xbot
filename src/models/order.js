@@ -110,7 +110,7 @@ const order = {
         let query = `order:${chatId}:`;
         let orders = await db.list({prefix: query}) || [];
 
-        await options.pub?.sendToAdmin(`orders: ${JSON.stringify(orders)}`, [])
+        await options.Logger?.log(`orders: ${JSON.stringify(orders)}`, [])
 
 
         buttons = orders.keys.map(p => this.toButtons(p, options.nextCmd));
@@ -118,7 +118,7 @@ const order = {
         if (options.toButtons && options.nextCmd) {
         }
 
-        await options.pub?.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, [])
+        await options.Logger?.log(`buttons: ${JSON.stringify(buttons)}`, [])
 
 
         return {orders, buttons};

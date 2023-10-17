@@ -165,7 +165,6 @@ const Cmd = {
             "buttons": "Order"
         },
 
-
         "manage": {
             "prevId": "/editedStart",
             "id": "manage",
@@ -255,7 +254,6 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
         "doUpdate": {
             "prevId": "managePlan",
             "id": "doUpdate",
-
             "asButton": false,
             "body": `✅ پلن شما با موفقیت آپدیت شد.`,
             "successText": ``,
@@ -267,6 +265,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["managePlan", "manage"]
         },
         "deleteItem": {
@@ -375,12 +374,12 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
         "doUpdateServer": {
             "prevId": "manageServer",
             "id": "doUpdateServer",
-
             "asButton": false,
             "body": `✅ سرور شما با موفقیت آپدیت شد.`,
             "successText": ``,
@@ -392,6 +391,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
         "deleteServer": {
@@ -490,6 +490,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
         "doUpdatePayment": {
@@ -507,6 +508,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
         "deletePayment": {
@@ -605,6 +607,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["manageClientApp", "manage"]
         },
         "doUpdateClientApp": {
@@ -621,6 +624,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["manageClientApp", "manage"]
         },
         "deleteClientApp": {
