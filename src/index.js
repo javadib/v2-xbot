@@ -297,8 +297,8 @@ async function onMessage(message, options = {}) {
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
-            // if (cmd.nextId) {
-            await wkv.update(chatId, {currentCmd: cmd.nextId})
+            // if (cmd.savedInSession) {
+                await wkv.update(chatId, {currentCmd: cmd.nextId})
             // }
 
             return response
@@ -327,11 +327,6 @@ async function onMessage(message, options = {}) {
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
             let opt = {pub: TlgBot, Logger}
-            opt = currentCmd.resultInNew ? opt : Object.assign({}, opt, {
-                method: 'editMessageText',
-                messageId: message.message_id
-            })
-
             await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);

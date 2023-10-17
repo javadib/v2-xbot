@@ -200,7 +200,9 @@ const order = {
                 if (res.status != 200) {
                     let text = ` مشکلی در گرفتن اطلاعات کاربر پیش اومد! لطفا مجدد امتحان کنید
 در صورت تکرار این مشکل رو به تیم پشتیبانی گزارش بدید 🙏`;
-                    text += `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
+
+                    // let adminText = text + `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
+                    // return await Logger.log(adminText, []); //TODO: public support channel/Group
 
                     return Promise.reject({message: text})
                 }
