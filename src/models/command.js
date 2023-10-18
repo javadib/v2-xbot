@@ -13,6 +13,9 @@ const Cmd = {
         newPayment() {
             return [{text: Cmd.list.newPayment.textIcon(), callback_data: Cmd.list.newPayment.id}]
         },
+        newClientApp() {
+            return [{text: Cmd.list.newClientApp.textIcon(), callback_data: Cmd.list.newClientApp.id}]
+        },
         actions(model, id) {
             return [
                 [
@@ -24,7 +27,7 @@ const Cmd = {
     },
     list: {
         "selectServer": {
-            "prevId": "/start",
+            "prevId": "/editedStart",
             "id": "selectServer",
             "title": "انتخاب سرور",
             "icon": `📍`,
@@ -37,8 +40,9 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "selectPlan",
+            "nextId": "selectPlan;{id}",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Server"
         },
         "selectPlan": {
@@ -55,8 +59,9 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "selectPayment",
+            "nextId": "selectPayment;{id}",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Plan"
         },
         "selectPayment": {
@@ -73,9 +78,55 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "show_invoice",
+            "nextId": "show_invoice;{id}",
             "savedInSession": true,
+            "appendAdminButtons": false,
             "buttons": "Payment"
+        },
+        "selectClientApp": {
+            "prevId": "/editedStart",
+            "id": "selectClientApp",
+            "title": "مشاهده نرم‌افزار",
+            "icon": `🔗`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `🔗 
+برای اتصال، یکی از نرم‌افزار‌های زیر رو دانلود و نصب کنید:`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "viewClientApp;{id}",
+            "savedInSession": false,
+            "appendAdminButtons": false,
+            "buttons": "ClientApp"
+        },
+        "viewClientApp": {
+            "prevId": "selectClientApp",
+            "id": "viewClientApp",
+            "title": "مشاهده جزییات",
+            "icon": `🔗`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `{icon}  جزییات نرم‌افزار {title}
+           
+برای دانلود نرم‌افزار از لینک زیر استفاده کنید:             
+{url} 
+`,
+            "successText": ``,
+            "helpText": ``,
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "preFunc": 'ClientApp;viewById',
+            "nextId": "",
+            "savedInSession": false ,
+            "buttons": []
         },
         "showInvoice": {
             "prevId": "selectPayment",
@@ -94,10 +145,28 @@ const Cmd = {
             "nextId": "show_invoice",
             "buttons": "Payment"
         },
+        "userOrders": {
+            "prevId": "/",
+            "id": "userOrders",
+            "title": "سوابق خرید",
+            "icon": `🛒`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `    textIcon: "🔗",
 
+لیست سفارشات تون 👇`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "orderDetails",
+            "savedInSession": false,
+            "buttons": "Order"
+        },
 
         "manage": {
-            "prevId": "/start",
+            "prevId": "/editedStart",
             "id": "manage",
             "title": "مدیریت",
             "icon": `👨‍💼`,
@@ -112,7 +181,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "",
-            "buttons": ["managePlan", "manageServer", "managePayment"]
+            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp"]
         },
         "managePlan": {
             "prevId": "manage",
@@ -158,6 +227,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
             "preFunc": "",
             "nextId": "createPlan",
+            "savedInSession": true,
             "buttons": []
         },
         "createPlan": {
@@ -168,7 +238,6 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             // textIcon() {
             //     return `${this.icon} ${this.title}`
             // },
-
             "asButton": false,
             "body": `✅ پلن شما با موفقیت ثبت شد.`,
             "successText": ``,
@@ -180,12 +249,13 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
             "buttons": ["managePlan", "manage"]
         },
         "doUpdate": {
             "prevId": "managePlan",
             "id": "doUpdate",
-
             "asButton": false,
             "body": `✅ پلن شما با موفقیت آپدیت شد.`,
             "successText": ``,
@@ -197,6 +267,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "resultInNew": true,
             "buttons": ["managePlan", "manage"]
         },
         "deleteItem": {
@@ -214,6 +285,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDelete",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDelete": {
@@ -236,6 +308,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["managePlan", "manage"]
         },
 
@@ -284,6 +357,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
 - در قسمت url ترجیحا از آدرس  پنل نماینده برای امنیت بیشتر استفاده کنید`,
             "preFunc": "",
             "nextId": "createServer",
+            "savedInSession": true,
             "buttons": []
         },
         "createServer": {
@@ -305,12 +379,13 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
         "doUpdateServer": {
             "prevId": "manageServer",
             "id": "doUpdateServer",
-
             "asButton": false,
             "body": `✅ سرور شما با موفقیت آپدیت شد.`,
             "successText": ``,
@@ -322,6 +397,8 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
         "deleteServer": {
@@ -338,6 +415,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDeleteServer",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDeleteServer": {
@@ -360,6 +438,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["manageServer", "manage"]
         },
 
@@ -420,6 +499,8 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": true,
+            "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
         "doUpdatePayment": {
@@ -437,6 +518,8 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
         "deletePayment": {
@@ -453,6 +536,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDeletePayment",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDeletePayment": {
@@ -475,7 +559,128 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["managePayment", "manage"]
+        },
+
+        "manageClientApp": {
+            "prevId": "manage",
+            "id": "manageClientApp",
+            "title": "مدیریت نرم‌افزارها",
+            "icon": `🔗`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `🔗 
+
+روی یک دکمه ضربه بزنید یا   
+ از دکمه "نرم‌افزار جدید" برای ثبت داده استفاده کنید:`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": '',
+            "nextId": "",
+            "buttons": "ClientApp"
+        },
+        "newClientApp": {
+            "prevId": "manageClientApp",
+            "id": "newClientApp",
+            "title": "ساخت نرم‌افزار جدید",
+            "icon": `🔗 ➕`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `🔗 ➕ 
+
+یک درگاه طبق الگوی زیر برای ثبت در سیستم ارسال کنید:
+                    
+title: ${"عنوان نرم‌افزار".replaceAll(" ", "_")}
+icon: ${"آیکون نرم‌افزار".replaceAll(" ", "_")} 
+url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")} 
+`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "createClientApp",
+            "savedInSession": true,
+            "buttons": []
+        },
+        "createClientApp": {
+            "prevId": "manageClientApp",
+            "id": "createClientApp",
+            "asButton": false,
+            "body": `✅ نرم‌افزار شما با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;create",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
+            "buttons": ["manageClientApp", "manage"]
+        },
+        "doUpdateClientApp": {
+            "prevId": "manageClientApp",
+            "id": "doUpdateClientApp",
+            "asButton": false,
+            "body": `✅ نرم‌افزار شما با موفقیت آپدیت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;doUpdate",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "resultInNew": true,
+            "buttons": ["manageClientApp", "manage"]
+        },
+        "deleteClientApp": {
+            "prevId": "manageClientApp",
+            "id": "deleteClientApp",
+            "title": "حذف نرم‌افزار",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": ``,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "",
+            "nextId": "confirmDeleteClientApp",
+            "savedInSession": true,
+            "buttons": []
+        },
+        "confirmDeleteClientApp": {
+            "prevId": "manageClientApp",
+            "id": "confirmDeleteClientApp",
+            "title": "حذف نرم‌افزار",
+            "icon": `❌`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `{modelName} با موفقیت حذف شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "ClientApp;deleteById",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "savedInSession": false,
+            "buttons": ["manageClientApp", "manage"]
         },
     },
 
@@ -488,7 +693,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
         ];
     },
 
-    backButton(cbData, text, options = {}) {
+    backButton(cbData, text) {
         return [{text: text || "برگشت ↩️", callback_data: cbData}];
     },
 
@@ -518,7 +723,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
         return !id ? undefined : this.list[id]
     },
 
-    findByIds(ids = [], filter, options = {}) {
+    findByIds(ids = [], filter = p => p, options = {}) {
         let result = ids.map(id => this.list[id]).filter(p => p).filter(filter) || [];
 
         return result;

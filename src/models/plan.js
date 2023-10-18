@@ -66,7 +66,7 @@ module.exports = {
     },
 
 
-    async adminRoute(cmdId, db, message, pub) {
+    async adminRoute(cmdId, db, message, tlgBot) {
         let chatId = message.chat_id || message.chat.id;
         let isAdmin = chatId === Config.bot.adminId;
         let [model, id, action] = cmdId.split('/');
@@ -75,18 +75,18 @@ module.exports = {
         let managePlanId = Command.list.managePlan.id;
 
 
-        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
 
 
         if (!plan) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
 
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:
@@ -96,7 +96,7 @@ module.exports = {
                 text = ` ${Command.list.managePlan.icon} ${this.modelName} ${plan.name}
                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdate.id};${plan.id}`;
@@ -111,7 +111,7 @@ module.exports = {
 
 ${this.toInput(plan)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -121,9 +121,9 @@ ${this.toInput(plan)}
                 let doDelete = `${confirmDeleteId};${plan.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: managePlanId})
                 // var actions = this.seed.adminButtons.actions(plan?.id);
-                actions.push(Command.backButton("/start"));
+                actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${plan.name} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 
@@ -164,10 +164,12 @@ ${this.toInput(plan)}
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.name, cbData(p))]);
 
-        if (options.forAdmin == true) {
+        let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
+        if (canShowAdminButtons && options.forAdmin == true) {
             result.push(this.seed.adminButtons.newPlan)
         }
 
@@ -208,12 +210,19 @@ ${this.toInput(plan)}
 
     async doUpdate({db, input, message, usrSession}, options = {}) {
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-        let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
+        let currentModel = oldData.find(p => p.id == input);
+
+        if (!currentModel) {
+            return Promise.reject({message: `${this.modelName} برای ویرایش پیدا نشد!`})
+        }
+
+
         let newData = await this.parseInput(message.text, {});
+        await options.Logger?.log(`doUpdate newData: ${JSON.stringify(newData)}`);
+
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);
-
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
@@ -224,12 +233,9 @@ ${this.toInput(plan)}
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
         let newData = oldData.filter(p => p.id != input);
 
-        // await options.pub.sendToAdmin(`inputs: ${typeof newData}, && ${JSON.stringify(newData)}`);
-
-
         let saved = await db.put(this.dbKey, newData);
 
-        return newData;
+        return {ok: true, modelName: this.modelName};
     },
 
 
@@ -239,7 +245,12 @@ ${this.toInput(plan)}
     },
 
     async create({db, input}, options = {}) {
+        await options.Logger?.log(`create input: ${JSON.stringify(input)}`);
+
         let data = await this.parseInput(input, options);
+
+        await options.Logger?.log(`create data: ${JSON.stringify(data)}`);
+
 
         if (!data.name || !data.totalPrice || !data.maxDays || !data.volume) {
             return Promise.reject({message: this.invalidMessage()})
@@ -247,8 +258,7 @@ ${this.toInput(plan)}
 
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-
-        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+        await options.Logger?.log(`oldData: ${JSON.stringify(oldData)}`);
 
         let newData = {
             "id": new Date().toUnixTIme(),
@@ -264,7 +274,7 @@ ${this.toInput(plan)}
 
         await db.put(this.dbKey, oldData);
 
-        return oldData;
+        return newData;
     }
 }
 

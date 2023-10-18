@@ -1,8 +1,14 @@
 'use strict';
 
-const index = require('../index');
+const Command = require("./command");
+const Hiddify = require("../modules/hiddify");
+const Server = require("./server");
 
-module.exports = {
+const order = {
+    dbKey: "order",
+    idKey: "id",
+    modelName: "سفارش",
+    textIcon: "🛒",
     meta: {
         cmd: 'save_order',
         prev_cmd: 'select_payment',
@@ -15,7 +21,24 @@ module.exports = {
         },
     },
 
-    adminNewOrder(tUser, sPlan, sPayment, message) {
+    // newFunc: Command.adminButtons.newClientApp,
+    // confirmDeleteId: Command.list.confirmDeleteClientApp.id,
+    manageId: "order_history",
+    // doUpdateId: Command.list.doUpdateClientApp.id,
+
+    actions: {
+        details(chatId, id) {
+            let orderKey = order.dbKey; //`${order.getId(chatId)}`;
+            return [
+                [
+                    {text: `♻️ تمدید اکانت`, callback_data: `${orderKey}/${id}/continuation`},
+                    // {text: `♻️ سفارش مجدد`, callback_data: `${order.getId(chatId)}/${id}/reOrder`}
+                ]
+            ]
+        }
+    },
+
+    adminNewOrderText(tUser, sPlan, sPayment, message) {
         let msg = `💳 خرید جدید ( کارت به کارت )
 
 💡آیدی کاربر: ${tUser.id}
@@ -40,10 +63,11 @@ module.exports = {
         return msg;
     },
 
-    reviewInvoice(sPlan, sPayment, options = {}) {
-        let {unitPrice = 'تومان'} = options;
+    reviewInvoiceText(sPlan, sPayment, options = {}) {
+        let {unitPrice = 'تومان', extendAcc} = options;
 
-        let msg = `📃 پیش فاکتور 
+        let headerText = extendAcc ? `📃 پیش فاکتور (تمدید)`: `📃 پیش فاکتور `;
+        let msg = `${headerText}
         
         
 📦 نام پلن: ${sPlan?.name}
@@ -60,11 +84,11 @@ module.exports = {
     },
 
     getId(chatId) {
-        return `order:${chatId}:${new Date().toUnixTIme()}`;
+        return `${this.dbKey}:${chatId}`;
     },
 
     parseId(id) {
-        let [model, userChatId, unixTime] = id.split(':')
+        let [model, userChatId, unixTime] = id.split(':') || []
 
         return {model, userChatId, unixTime};
     },
@@ -75,7 +99,7 @@ module.exports = {
         data.push([{text: text, callback_data: `${nextCmd};${order.id}`}])
 
         if (addBackButton) {
-            data.push([{text: "برگشت ↩️", callback_data: "/start"}])
+            data.push([{text: "برگشت ↩️", callback_data: "/editedStart"}])
         }
 
         return data;
@@ -86,7 +110,7 @@ module.exports = {
         let query = `order:${chatId}:`;
         let orders = await db.list({prefix: query}) || [];
 
-        await options.pub?.sendToAdmin(`orders: ${JSON.stringify(orders)}`, [])
+        await options.Logger?.log(`orders: ${JSON.stringify(orders)}`, [])
 
 
         buttons = orders.keys.map(p => this.toButtons(p, options.nextCmd));
@@ -94,15 +118,143 @@ module.exports = {
         if (options.toButtons && options.nextCmd) {
         }
 
-        await options.pub?.sendToAdmin(`buttons: ${JSON.stringify(buttons)}`, [])
-
+        await options.Logger?.log(`buttons: ${JSON.stringify(buttons)}`, [])
 
 
         return {orders, buttons};
-    }
+    },
 
+    async findByUser(db, chatId, filter, options = {}) {
+        filter = filter || (p => p);
+        let oId = this.getId(chatId);
+        let models = await db.get(oId, {type: "json"}) || [];
+
+        return models.filter(filter);
+    },
+
+    async findByIdDb(db, chatId, id, options = {}) {
+        let oId = this.getId(chatId);
+        let models = await db.get(oId, {type: "json"}) || [];
+        // await options.Logger?.log(`findByIdDb: ${oId} && ${JSON.stringify(models)}`)
+
+        return models.find(p => p.id == id);
+    },
+
+    async updateByIdDb(db, chatId, id, data, options = {}) {
+        let oId = this.getId(chatId);
+        let oldData = await db.get(oId, {type: "json"}) || [];
+        let currentModel = oldData.find(p => p.id == id);
+
+        if (!currentModel) {
+            return Promise.reject({message: `${this.modelName} برای ویرایش پیدا نشد!`})
+        }
+
+        data.id = id;
+        currentModel = Object.assign(currentModel, data);
+        // await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+
+        await db.put(oId, oldData)
+
+        return currentModel;
+    },
+
+    async doUpdate({db, input, message, usrSession}, options = {}) {
+        let chatId = message.chat_id || message.chat.id;
+        let newData = await this.parseInput(message.text, {});
+        newData.id = input;
+
+        return this.updateByIdDb(db, chatId, input, newData, options)
+    },
+
+    async deleteById({db, input}, options = {}) {
+        let oldData = await db.get(this.dbKey, {type: "json"}) || [];
+        let newData = oldData.filter(p => p.id != input);
+
+        let saved = await db.put(this.dbKey, newData);
+
+        return {ok: true, modelName: this.modelName};
+    },
+
+
+    async route(cmdId, orderModel, server, handler, tlgBot, options = {}) {
+        let {db, message, usrSession, isAdmin} = handler;
+        let chatId = message.chat_id || message.chat.id;
+        let [model, id, action] = cmdId.split('/');
+        await options.Logger?.log(`order route - [model, id, action]: ${JSON.stringify([model, id, action])}`, []);
+
+
+        if (!orderModel) {
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+        }
+
+        let text, actions, res;
+        let opt = {method: 'editMessageText', messageId: message.message_id}
+
+        switch (action) {
+            case action.match(/details/)?.input:
+                actions = this.actions.details(chatId, orderModel.id);
+                actions.push(Command.backButton(this.manageId));
+
+                let hiddify = new Hiddify();
+                let data = { "baseUrl": Server.getHiddifyBaseurl(new URL(server.url), orderModel.uId) }
+                res = await hiddify.getAccountInfo(orderModel.uId, data, options)
+
+                if (res.status != 200) {
+                    let text = ` مشکلی در گرفتن اطلاعات کاربر پیش اومد! لطفا مجدد امتحان کنید
+در صورت تکرار این مشکل رو به تیم پشتیبانی گزارش بدید 🙏`;
+
+                    // let adminText = text + `\n\n ${res.status} : ${JSON.stringify(await res.text())}`;
+                    // return await Logger.log(adminText, []); //TODO: public support channel/Group
+
+                    return Promise.reject({message: text})
+                }
+
+                let accInfo = await res.json();
+                text = ` 
+${order.textIcon} مشخصات اکانت ${orderModel.accountName}
+                
+🤷‍♂️ شناسه اکانت :  {uuid}
+
+🎚 حجم اکانت :  {volumeText}
+
+📅 تعداد روز :  {dayText}
+
+
+از عملیات زیر برای این اکانت می تونید استفاده کنید
+`;
+                text = accInfo.data?.transform(text);
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
+
+            case action.match(/update/)?.input:
+                let doUpdate = `${this.doUpdateId};${orderModel.id}`;
+                actions = [];
+                actions.push(Command.backButton(this.manageId));
+                text = `✏️ مقادیری که می خواهید اپدیت شوند رو ارسال کنید.
+                
+بقیه موارد تغییری نخواهند کرد:
+
+مشخصات فعلی ${this.modelName} : 
+
+${this.toInput(orderModel)}
+                `;
+                res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
+
+                await db.update(chatId, {currentCmd: doUpdate})
+
+                return res
+
+            case action.match(/delete/)?.input:
+                let doDelete = `${this.confirmDeleteId};${orderModel.id}`;
+                actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
+                actions.push(Command.backButton("/editedStart"));
+                text = ` آیا از حذف ${this.modelName} ${orderModel.title} مطمئنید؟`;
+                res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
+
+                // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
+
+                return res
+        }
+    },
 }
 
-
-
-
+module.exports = order;
