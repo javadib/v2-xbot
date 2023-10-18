@@ -228,15 +228,15 @@ const clientApp = {
         return newData;
     },
 
-    async adminRoute(cmdId, handler, pub) {
+    async adminRoute(cmdId, handler, tlgBot) {
         let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let dbModel = await this.findByIdDb(db, id);
-        // await pub.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute dbModel: ${JSON.stringify(dbModel)}`);
 
         if (!dbModel) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
         let text, actions;
@@ -250,7 +250,7 @@ const clientApp = {
                 text = ` ${Command.list.manageClientApp.icon} ${this.modelName} ${dbModel.title}
                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${this.doUpdateId};${dbModel.id}`;
@@ -264,7 +264,7 @@ const clientApp = {
 
 ${this.toInput(dbModel)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -275,7 +275,7 @@ ${this.toInput(dbModel)}
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
                 actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${dbModel.title} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 

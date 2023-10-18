@@ -176,13 +176,13 @@ const order = {
     },
 
 
-    async route(cmdId, orderModel, server, handler, pub, options = {}) {
+    async route(cmdId, orderModel, server, handler, tlgBot, options = {}) {
         let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
 
         if (!orderModel) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
         let text, actions, res;
@@ -221,7 +221,7 @@ ${order.textIcon} مشخصات اکانت ${orderModel.accountName}
 از عملیات زیر برای این اکانت می تونید استفاده کنید
 `;
                 text = accInfo.data?.transform(text);
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${this.doUpdateId};${orderModel.id}`;
@@ -235,7 +235,7 @@ ${order.textIcon} مشخصات اکانت ${orderModel.accountName}
 
 ${this.toInput(orderModel)}
                 `;
-                res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -246,7 +246,7 @@ ${this.toInput(orderModel)}
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: this.manageId})
                 actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${orderModel.title} مطمئنید؟`;
-                res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 

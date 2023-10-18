@@ -66,7 +66,7 @@ module.exports = {
     },
 
 
-    async adminRoute(cmdId, db, message, pub) {
+    async adminRoute(cmdId, db, message, tlgBot) {
         let chatId = message.chat_id || message.chat.id;
         let isAdmin = chatId === Config.bot.adminId;
         let [model, id, action] = cmdId.split('/');
@@ -75,15 +75,15 @@ module.exports = {
         let managePlanId = Command.list.managePlan.id;
 
 
-        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
 
 
         if (!plan) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
 
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
         let opt = {method: 'editMessageText', messageId: message.message_id}
@@ -96,7 +96,7 @@ module.exports = {
                 text = ` ${Command.list.managePlan.icon} ${this.modelName} ${plan.name}
                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdate.id};${plan.id}`;
@@ -111,7 +111,7 @@ module.exports = {
 
 ${this.toInput(plan)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -123,7 +123,7 @@ ${this.toInput(plan)}
                 // var actions = this.seed.adminButtons.actions(plan?.id);
                 actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${plan.name} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 

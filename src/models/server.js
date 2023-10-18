@@ -155,7 +155,7 @@ module.exports = {
         return newData;
     },
 
-    async adminRoute(cmdId, db, message, pub) {
+    async adminRoute(cmdId, db, message, tlgBot) {
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let server = await this.findByIdDb(db, id);
@@ -163,7 +163,7 @@ module.exports = {
         let manageServerId = Command.list.manageServer.id;
 
         if (!server) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
         let text, actions;
@@ -178,7 +178,7 @@ module.exports = {
                 
                                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdateServer.id};${server.id}`;
@@ -192,7 +192,7 @@ module.exports = {
 
 ${this.toInput(server)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -203,7 +203,7 @@ ${this.toInput(server)}
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: manageServerId})
                 actions.push(Command.backButton("/start"));
                 text = ` آیا از حذف ${this.modelName} ${server.title} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 
