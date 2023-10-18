@@ -53,7 +53,8 @@ module.exports = {
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.title, cbData(p))]);
         // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
 

@@ -164,7 +164,8 @@ ${this.toInput(plan)}
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.name, cbData(p))]);
 
         let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;

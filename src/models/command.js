@@ -40,7 +40,7 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "selectPlan",
+            "nextId": "selectPlan;{id}",
             "savedInSession": true,
             "appendAdminButtons": false,
             "buttons": "Server"
@@ -59,7 +59,7 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "selectPayment",
+            "nextId": "selectPayment;{id}",
             "savedInSession": true,
             "appendAdminButtons": false,
             "buttons": "Plan"
@@ -78,7 +78,7 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "show_invoice",
+            "nextId": "show_invoice;{id}",
             "savedInSession": true,
             "appendAdminButtons": false,
             "buttons": "Payment"
@@ -97,8 +97,8 @@ const Cmd = {
             "successText": ``,
             "helpText": ``,
             "preFunc": '',
-            "nextId": "viewClientApp",
-            "savedInSession": true,
+            "nextId": "viewClientApp;{id}",
+            "savedInSession": false,
             "appendAdminButtons": false,
             "buttons": "ClientApp"
         },
@@ -161,7 +161,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "orderDetails",
-            "savedInSession": true,
+            "savedInSession": false,
             "buttons": "Order"
         },
 
@@ -227,6 +227,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
 توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
             "preFunc": "",
             "nextId": "createPlan",
+            "savedInSession": true,
             "buttons": []
         },
         "createPlan": {
@@ -248,6 +249,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "resultInNew": true,
             "buttons": ["managePlan", "manage"]
         },
@@ -283,6 +285,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDelete",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDelete": {
@@ -305,6 +308,7 @@ volume: ${"حجم به گیگ".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["managePlan", "manage"]
         },
 
@@ -353,6 +357,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
 - در قسمت url ترجیحا از آدرس  پنل نماینده برای امنیت بیشتر استفاده کنید`,
             "preFunc": "",
             "nextId": "createServer",
+            "savedInSession": true,
             "buttons": []
         },
         "createServer": {
@@ -374,6 +379,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
@@ -391,6 +397,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "resultInNew": true,
             "buttons": ["manageServer", "manage"]
         },
@@ -408,6 +415,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDeleteServer",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDeleteServer": {
@@ -430,6 +438,7 @@ url: ${"آدرس سرور هیدیفای".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["manageServer", "manage"]
         },
 
@@ -490,6 +499,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": true,
             "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
@@ -508,6 +518,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "resultInNew": true,
             "buttons": ["managePayment", "manage"]
         },
@@ -525,6 +536,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDeletePayment",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDeletePayment": {
@@ -547,6 +559,7 @@ appSecret: ${"شماره کارت صاحبت کارت".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["managePayment", "manage"]
         },
 
@@ -591,6 +604,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "createClientApp",
+            "savedInSession": true,
             "buttons": []
         },
         "createClientApp": {
@@ -607,6 +621,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "resultInNew": true,
             "buttons": ["manageClientApp", "manage"]
         },
@@ -641,6 +656,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
             "helpText": ``,
             "preFunc": "",
             "nextId": "confirmDeleteClientApp",
+            "savedInSession": true,
             "buttons": []
         },
         "confirmDeleteClientApp": {
@@ -663,6 +679,7 @@ url: ${"لینک دانلود نرم‌افزار".replaceAll(" ", "_")}
                 return {model, func}
             },
             "nextId": "",
+            "savedInSession": false,
             "buttons": ["manageClientApp", "manage"]
         },
     },

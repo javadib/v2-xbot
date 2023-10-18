@@ -23,7 +23,8 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-const Logger = TlgBot;
+// const Logger = TlgBot;
+const Logger = console;
 
 
 Object.prototype.transform = function (text) {
@@ -283,7 +284,6 @@ async function onMessage(message, options = {}) {
                 vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
                 // await Logger.log(`vars: ${JSON.stringify(vars)}`)
             }
-
             let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
             // await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
 
@@ -331,8 +331,8 @@ async function onMessage(message, options = {}) {
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
-            // if (currentCmd.nextId) {
-            await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            // if (currentCmd.savedInSession) {
+                await wkv.update(chatId, {currentCmd: currentCmd.nextId})
             // }
 
             return sentMessageRes

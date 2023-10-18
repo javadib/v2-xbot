@@ -59,7 +59,8 @@ module.exports = {
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
         let result = data.map(p => {
-            let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+            // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+            let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
             return [Command.ToTlgButton(p.title, cbData(p))];
         });
         // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
