@@ -7,14 +7,14 @@ const config = {
     },
     bot: {
         name: "V2xBot",
-        adminId: 11111111, // آیدی عددی باشه و داخل "" نباشه
-        tlgSupport: "@YOUR_SUPPORT_USERNAME",
-        token: "YOUR_BOT_TOKEN",
+        adminId: adminId,
+        tlgSupport: tlgSupport,
+        token: botToken,
         webHook: '/endpoint',
         secret: "123456789wertyuiopxcvbnmDGHJKRTYIO", // A-Z, a-z, 0-9, _ and -
         welcomeMessage() {
             return `سلام به شما دوست گرامی! 🌟
-به ربات ${config.bot.name} خوش آمدید! 🎉 از اینکه اینجا هستید، بسیار خوشحالیم.
+به ربات V2xBot خوش آمدید! 🎉 از اینکه اینجا هستید، بسیار خوشحالیم.
 
 ما اینجا هستیم تا به شما کمک کنیم و هر سوال یا درخواستی که دارید را رفع کنیم.
 
