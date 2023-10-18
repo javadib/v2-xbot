@@ -46,7 +46,7 @@ module.exports = {
         return this.seed.data.find(p => p.model.id == id)
     },
 
-    toInput(obj, options = {}) {
+    toInput(obj) {
         return Object.keys(obj).reduce((pv, cv, i) => {
             pv += `${cv} : ${obj[cv]}\n`;
 
@@ -63,7 +63,7 @@ module.exports = {
             let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
             return [Command.ToTlgButton(p.title, cbData(p))];
         });
-        // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
+        // await options.Logger?.log(`findAll result: ${JSON.stringify(result)}`);
 
         let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
         if (canShowAdminButtons && options.forAdmin == true) {
@@ -109,7 +109,7 @@ module.exports = {
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);
 
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        // await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
@@ -131,7 +131,7 @@ module.exports = {
     },
 
     async create({db, input}, options = {}) {
-        // await options.pub?.sendToAdmin(`before create: ${typeof input} && ${JSON.stringify(input)}`);
+        // await options.Logger?.log(`before create: ${typeof input} && ${JSON.stringify(input)}`);
         let data = await this.parseInput(input, options);
 
         if (!data.title || !data.remark || !data.url) {
@@ -140,7 +140,7 @@ module.exports = {
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 
-        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
+        // await options.Logger?.log(`oldData: ${JSON.stringify(oldData)}`);
 
         let newData = {
             "id": new Date().toUnixTIme(),
@@ -162,27 +162,21 @@ module.exports = {
         let confirmDeleteId = Command.list.confirmDeleteServer.id;
         let manageServerId = Command.list.manageServer.id;
 
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
-
-
         if (!server) {
             return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
-
         let text, actions;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:
                 actions = Command.adminButtons.actions(this.dbKey, server.id);
                 actions.push(Command.backButton(manageServerId));
 
-                text = ` ${Command.list.manageServer.icon} ${this.modelName} ${server.title}
+                text = `${Command.list.manageServer.icon} ${this.modelName} ${server.title}
                 
+                                
 یکی از عملیات مربوطه روانتخاب کنید:`;
                 return await pub.sendInlineButtonRow(chatId, text, actions, opt)
 

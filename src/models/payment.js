@@ -56,7 +56,7 @@ module.exports = {
         // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
         let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.title, cbData(p))]);
-        // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
+        // await options.Logger?.log(`findAll result: ${JSON.stringify(result)}`);
 
         let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
         if (canShowAdminButtons && options.forAdmin == true) {
@@ -102,7 +102,7 @@ module.exports = {
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);
 
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        // await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
@@ -159,7 +159,7 @@ module.exports = {
         }
 
         let text, actions;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:

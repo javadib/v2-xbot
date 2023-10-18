@@ -86,7 +86,7 @@ module.exports = {
         // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:

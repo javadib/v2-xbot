@@ -135,7 +135,7 @@ const order = {
     async findByIdDb(db, chatId, id, options = {}) {
         let oId = this.getId(chatId);
         let models = await db.get(oId, {type: "json"}) || [];
-        // await options.pub?.sendToAdmin(`findByIdDb: ${oId} && ${JSON.stringify(models)}`)
+        // await options.Logger?.log(`findByIdDb: ${oId} && ${JSON.stringify(models)}`)
 
         return models.find(p => p.id == id);
     },
@@ -151,7 +151,7 @@ const order = {
 
         data.id = id;
         currentModel = Object.assign(currentModel, data);
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        // await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(oId, oldData)
 
@@ -176,7 +176,7 @@ const order = {
     },
 
 
-    async route(cmdId, orderModel, server, handler, pub) {
+    async route(cmdId, orderModel, server, handler, pub, options = {}) {
         let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
@@ -186,7 +186,7 @@ const order = {
         }
 
         let text, actions, res;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:
@@ -195,7 +195,7 @@ const order = {
 
                 let hiddify = new Hiddify();
                 let data = { "baseUrl": Server.getHiddifyBaseurl(new URL(server.url), orderModel.uId) }
-                res = await hiddify.getAccountInfo(orderModel.uId, data, {pub: pub})
+                res = await hiddify.getAccountInfo(orderModel.uId, data, options)
 
                 if (res.status != 200) {
                     let text = ` مشکلی در گرفتن اطلاعات کاربر پیش اومد! لطفا مجدد امتحان کنید

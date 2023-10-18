@@ -237,7 +237,7 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/server\/(.?)*\/details/)?.input:
             case cmdId.match(/server\/(.?)*\/update/)?.input:
             case cmdId.match(/server\/.*\/delete/)?.input:
-                return await Server.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Server.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/payment\/(.?)*\/details/)?.input:
             case cmdId.match(/payment\/(.?)*\/update/)?.input:
@@ -280,14 +280,14 @@ async function onMessage(message, options = {}) {
                 let {model, func} = cmd.preFuncData();
                 // await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
-                let result = await DataModel[model]?.[func](handler, {pub: TlgBot, debug: true});
+                let result = await DataModel[model]?.[func](handler, {Logger});
                 vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
                 // await Logger.log(`vars: ${JSON.stringify(vars)}`)
             }
-            let buttons = await buildButtons(cmd, isAdmin, {pub: TlgBot, nextCmd: `${cmd.nextId}`});
+            let buttons = await buildButtons(cmd, isAdmin, {Logger, nextCmd: `${cmd.nextId}`});
             // await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
 
-            let opt = {pub: TlgBot}
+            let opt = {Logger}
             opt = cmd.resultInNew ? opt : Object.assign({}, opt, {
                 method: 'editMessageText',
                 messageId: message.message_id
@@ -314,7 +314,7 @@ async function onMessage(message, options = {}) {
 
                 handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {
-                    pub: TlgBot,
+                    Logger,
                     debug: true,
                     nextCmd: currentCmd.nextId
                 });
@@ -326,7 +326,7 @@ async function onMessage(message, options = {}) {
             let {text, buttons} = await Command.buildCmdInfo(wkv, currentCmd, DataModel, isAdmin, buildOpt);
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
-            let opt = {pub: TlgBot, Logger}
+            let opt = {Logger}
             await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
@@ -390,7 +390,7 @@ async function confirmOrder(message) {
         return await TlgBot.sendInlineButtonRow(chatId, text, [])
     }
 
-    let order = await Order.findByIdDb(wkv, userChatId, orderId, {pub: TlgBot})
+    let order = await Order.findByIdDb(wkv, userChatId, orderId, {Logger})
     if (!order) {
         let text = `سفارشی برای پردازش پیدا نشد!`;
         let buttons = [];
@@ -520,7 +520,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
 
 async function showOrders(message, backCmdId) {
     let chatId = message.chat_id || message.chat.id;
-    let orders = await Order.findByUser(wkv, chatId, p => p.accountName, {pub: TlgBot}) || []
+    let orders = await Order.findByUser(wkv, chatId, p => p.accountName, {Logger}) || []
     let buttons = orders.filter(p => p.accountName).map(o => {
         let cbData = `${Order.dbKey}/${o.id}/details`;
         return [Command.ToTlgButton(o.accountName, cbData)];
