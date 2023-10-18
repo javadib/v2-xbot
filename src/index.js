@@ -23,7 +23,8 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-const Logger = !enableLog || env === 'production' ? console :  TlgBot;
+const env = typeof env !== 'undefined' && env ? env : "development";
+const Logger = !enableLog || env === 'production' ? console : TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -65,6 +66,9 @@ addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
+        case "/check":
+            event.respondWith(check(event));
+            break;
         case SEED:
             //TODO: disable after execute (exec once)
             // event.respondWith(seedDb(event))
@@ -132,6 +136,18 @@ async function onUpdate(update) {
         await onMessage(message, {update})
         // await onCallbackQuery(update.callback_query)
     }
+}
+
+async function check(event) {
+    let vars = `YOUR VARIABLES:
+
+adminId: ${typeof adminId !== 'undefined' && adminId ? '✅ OK' : '❌ NOT OK'},
+tlgSupport: ${typeof tlgSupport !== 'undefined' && tlgSupport ? '✅ OK' : '❌ NOT OK'},
+token: ${typeof botToken !== 'undefined' && botToken ? '✅ OK' : '❌ NOT OK'}
+    
+Make sure that set your variables correctly.`
+
+    return new Response(vars);
 }
 
 /**
