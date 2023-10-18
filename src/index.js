@@ -481,7 +481,7 @@ async function sendOrderToAdmin2(message, session, orderId) {
     return await TlgBot.sendInlineButtonRow(Config.bot.adminId, msg, buttons)
 }
 
-async function saveOrder2(message, session, sendToAdmin = true, deleteSession = true) {
+async function saveOrder2(message, session, notifToAdmin = true, deleteSession = true) {
     let chatId = message.chat.id || message.chat_id;
     let sPlan = await Plan.findByIdDb(wkv, session[Command.list.selectPlan.id]);
     let sPayment = await Payment.findByIdDb(wkv, session[Command.list.selectPayment.id]);
@@ -512,7 +512,7 @@ async function saveOrder2(message, session, sendToAdmin = true, deleteSession = 
         await wkv.delete(chatId)
     }
 
-    if (sendToAdmin) {
+    if (notifToAdmin) {
         await sendOrderToAdmin2(message, session, newOrder.id)
     }
     return sentUserOrderRes
