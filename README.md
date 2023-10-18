@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/github/downloads/javadib/v2-xbot/total.svg)](#)
 [![License](https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting system.
+v2-xBot is multi panel, serverless (cloudflare worker) bot to order management & VPN Accounting system.
 #
 
 # Features
@@ -14,7 +14,7 @@ v2-xBot is serverless (cloudflare worker) bot to sale & VPN Accounting system.
   - Manage (CRUD) `Panels` in bot
   - Manage (CRUD) `Servers` in bot
   - Manage (CRUD) `Payments` methods in bot
-- [ ] Apps & link (for users)
+- [x] Apps & link (for users)
 - [ ] User Profile
 - [ ] Affiliate system
 #

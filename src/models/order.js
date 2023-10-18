@@ -180,6 +180,8 @@ const order = {
         let {db, message, usrSession, isAdmin} = handler;
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
+        await options.Logger?.log(`order route - [model, id, action]: ${JSON.stringify([model, id, action])}`, []);
+
 
         if (!orderModel) {
             return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);

@@ -23,8 +23,7 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-// const Logger = TlgBot;
-const Logger = console;
+const Logger = !enableLog || env === 'production' ? console :  TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -68,7 +67,7 @@ addEventListener('fetch', async event => {
     switch (url.pathname) {
         case SEED:
             //TODO: disable after execute (exec once)
-            event.respondWith(seedDb(event))
+            // event.respondWith(seedDb(event))
             break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
@@ -254,18 +253,17 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
             case cmdId.match(/order\/(.?)*\/update/)?.input:
             case cmdId.match(/order\/.*\/delete/)?.input:
-                // await Logger.log(`order.route - cmdId: ${cmdId}`, []);
-
+                await Logger.log(`order.route - cmdId: ${cmdId}`, []);
                 let [model, id, action] = cmdId.split('/');
                 let orderModel = await Order.findByIdDb(wkv, chatId, id);
 
-                if (action == "continuation") {
+                if (action === "continuation") {
                     await setExtendAccount(message, orderModel, {})
                 }
 
                 let server = await Server.findByIdDb(wkv, orderModel[Command.list.selectServer.id]);
 
-                return await Order.route(cmdId, orderModel, server, handler, TlgBot);
+                return await Order.route(cmdId, orderModel, server, handler, TlgBot, {Logger});
         }
 
         let vars = {};

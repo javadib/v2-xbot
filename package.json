@@ -5,7 +5,9 @@
   "repository": "https://github.com/javadib/v2-xbot.git",
   "scripts": {
     "dev": "wrangler dev src/index.js",
-    "deploy": "wrangler deploy src/index.js --outdir dist/"
+    "deploy": "wrangler deploy src/index.js --outdir dist/",
+    "deploy-staging": "wrangler deploy --env staging src/index.js --outdir dist/",
+    "deploy-release": "wrangler deploy --env production src/index.js --outdir dist/"
   },
   "dependencies": {
     "hono": "^3.6.0",
