@@ -7,12 +7,10 @@ All notable changes to this project will be documented in this file，ChangeLog 
 
 ### fix
 
-* remvoe url from payment creation ([debb4c2](https://github.com/javadib/v2-xbot/commit/debb4c2))
+* Remove url from payment creation ([debb4c2](https://github.com/javadib/v2-xbot/commit/debb4c2))
 * basic validation for crete methods ([713d181](https://github.com/javadib/v2-xbot/commit/713d181))
-* some bug patched ([72985ef](https://github.com/javadib/v2-xbot/commit/72985ef))
-* som ebug ([7ae5672](https://github.com/javadib/v2-xbot/commit/7ae5672))
+* some bugs patched ([72985ef](https://github.com/javadib/v2-xbot/commit/72985ef))
 * comment in create account fixed ([4054b01](https://github.com/javadib/v2-xbot/commit/4054b01))
-* some bug fix ([4265ae3](https://github.com/javadib/v2-xbot/commit/4265ae3))
 * buy workflow refactor ([5f05c3a](https://github.com/javadib/v2-xbot/commit/5f05c3a))
 * server.name to .title ([bba60d9](https://github.com/javadib/v2-xbot/commit/bba60d9))
 * plan deletebyId ([96ffde7](https://github.com/javadib/v2-xbot/commit/96ffde7))
@@ -23,8 +21,8 @@ All notable changes to this project will be documented in this file，ChangeLog 
 * getButtons preVmd ([c55d6c2](https://github.com/javadib/v2-xbot/commit/c55d6c2))
 * textIcon ([db7c20d](https://github.com/javadib/v2-xbot/commit/db7c20d))
 * dist path ([ffac0fb](https://github.com/javadib/v2-xbot/commit/ffac0fb))
-* Remove jubk dta ([b648ec9](https://github.com/javadib/v2-xbot/commit/b648ec9))
-* accoutn name patched ([cf809a1](https://github.com/javadib/v2-xbot/commit/cf809a1))
+* Remove junk data ([b648ec9](https://github.com/javadib/v2-xbot/commit/b648ec9))
+* account name patched ([cf809a1](https://github.com/javadib/v2-xbot/commit/cf809a1))
 * better account name ([2497631](https://github.com/javadib/v2-xbot/commit/2497631))
 * better account name ([3b3dab3](https://github.com/javadib/v2-xbot/commit/3b3dab3))
 * some logical bug ([50ba3f7](https://github.com/javadib/v2-xbot/commit/50ba3f7))
@@ -41,7 +39,7 @@ All notable changes to this project will be documented in this file，ChangeLog 
 * some bug2 ([034498c](https://github.com/javadib/v2-xbot/commit/034498c))
 * some bug ([4890538](https://github.com/javadib/v2-xbot/commit/4890538))
 * invoice message ([491ad27](https://github.com/javadib/v2-xbot/commit/491ad27))
-* b29f882 some bug fixwed ([b29f882](https://github.com/javadib/v2-xbot/commit/b29f882))
+* b29f882 some bug fixed ([b29f882](https://github.com/javadib/v2-xbot/commit/b29f882))
 * model buttons ([8e5e8d8](https://github.com/javadib/v2-xbot/commit/8e5e8d8))
 
 
@@ -49,7 +47,7 @@ All notable changes to this project will be documented in this file，ChangeLog 
 
 * move telegram api to module ([c27163b](https://github.com/javadib/v2-xbot/commit/c27163b))
 * remove payProofMessageId ([f180456](https://github.com/javadib/v2-xbot/commit/f180456))
-* remvoe logs ([8b397ca](https://github.com/javadib/v2-xbot/commit/8b397ca))
+* remove logs ([8b397ca](https://github.com/javadib/v2-xbot/commit/8b397ca))
 * delete extra modules ([6a4989b](https://github.com/javadib/v2-xbot/commit/6a4989b))
 * payment.ts to js ([95c909b](https://github.com/javadib/v2-xbot/commit/95c909b))
 * server.ts to js ([5cd3de5](https://github.com/javadib/v2-xbot/commit/5cd3de5))
