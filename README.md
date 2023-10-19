@@ -17,7 +17,7 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
 - [x] Apps & link (for users)
 - [ ] User Profile
 - [ ] Affiliate system
-#32
+#
 
 # Get Started
 0) Create a cloudflare worker, KV namespace & bind to `db` variable

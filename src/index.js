@@ -96,7 +96,6 @@ async function seedDb(event) {
     await Logger.log(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
 
     return new Response(JSON.stringify(clientApps))
-
 }
 
 /**
