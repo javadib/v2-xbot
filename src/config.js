@@ -7,7 +7,7 @@ const config = {
     },
     bot: {
         name: "V2xBot",
-        adminId: adminId,
+        adminId: Number(adminId),
         tlgSupport: tlgSupport,
         token: botToken,
         webHook: '/endpoint',

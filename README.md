@@ -21,27 +21,19 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
 
 # Get Started
 0) Create a cloudflare worker, KV namespace & bind to `db` variable
-1) Download [Latest Version](https://github.com/javadib/v2-xbot/releases/latest/download/dist.zip)
-2) Extract `dist.zip` and open `index.js` with suitable editor.
-3) Edit `bot section` with your variables (search `config.js` in file):
-   - Replace `YOUR_BOT_NAME` with your bot name (Optional).
-   - Replace `11111111` with your Telegram Admin ID.
-   - Replace `@YOUR_SUPPORT_USERNAME` with your support Telegram username (Remember put `@` at the first).
-   - Replace `YOUR_BOT_TOKEN` with your Telegram bot token.
-4) Replace whole codes with default cloudflare worker code.
+1) Got to worker settings, variable section, and add following variables:
+    - `adminId` : your Telegram Admin ID (get from [MyIdInfoBot](https://t.me/Myidinfobot)).
+    - `botToken` : your Telegram bot token.
+    - `tlgSupport` : your support Telegram username (Remember put `@` at the first).
+3) Download [Latest Version](https://github.com/javadib/v2-xbot/releases/latest/download/dist.zip)
+4) Extract `dist.zip` and replace whole `index.js` codes with default cloudflare worker code.
+4) Open `YOUR_WORKER.worker.dev/check` to check all variables are `✅ OK`.
 5) Save and deploy worker and send a `GET ` request to `/registerWebhook` path to register webhook of your bot. make sure you see `ok` in response.
 #
 ![1](./docs/images/register-result.png)
 
 6) Send message to bot with admin account and manage all you need.
 7) Done!
-#
-
-
-
-
-# Custom Edition
-Under Development ...
 #
 
 
