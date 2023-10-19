@@ -162,7 +162,7 @@ const clientApp = {
 
             if (split.length < 1) return pv;
 
-            pv[split[0].trim()] = split.slice(1).join(':').trim;
+            pv[split[0].trim()] = split.slice(1).join(':').trim();
 
             return pv;
         }, {})
