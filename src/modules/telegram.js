@@ -7,7 +7,6 @@ module.exports = class Telegram {
 
     static instance =  new Telegram(Config.bot.token);
 
-
     constructor(token) {
         this._token = token;
     }
@@ -112,5 +111,12 @@ module.exports = class Telegram {
 
     async sendToAdmin(text, buttonRow = [], options = {}) {
         return this.sendInlineButtonRow(Config.bot.adminId, text, buttonRow, options)
+    }
+
+    async log(text, options = {}) {
+        text = `log: ${text}`;
+
+        //TODO: change adminId, have no idea
+        return this.sendToAdmin(text, [], {})
     }
 }

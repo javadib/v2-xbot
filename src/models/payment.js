@@ -53,11 +53,13 @@ module.exports = {
         let {addBackButton = true, nextCmd} = options;
 
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
+        let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
         let result = data.map(p => [Command.ToTlgButton(p.title, cbData(p))]);
-        // await options.pub?.sendToAdmin(`findAll result: ${JSON.stringify(result)}`);
+        // await options.Logger?.log(`findAll result: ${JSON.stringify(result)}`);
 
-        if (options.forAdmin == true) {
+        let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
+        if (canShowAdminButtons && options.forAdmin == true) {
             result.push(Command.adminButtons.newPayment())
         }
 
@@ -90,12 +92,17 @@ module.exports = {
 
     async doUpdate({db, input, message, usrSession}, options = {}) {
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-        let currentModel = oldData.find(p => p.id == input); //TODO: Raise Ex if model not found
+        let currentModel = oldData.find(p => p.id == input);
+
+        if (!currentModel) {
+            return Promise.reject({message: `${this.modelName} برای ویرایش پیدا نشد!`})
+        }
+
         let newData = await this.parseInput(message.text, {});
         newData.id = input;
         currentModel = Object.assign(currentModel, newData);
 
-        // await options.pub?.sendToAdmin(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
+        // await options.Logger?.log(`newData: ${typeof currentModel}, && ${JSON.stringify(currentModel)}`);
 
         await db.put(this.dbKey, oldData)
 
@@ -106,12 +113,9 @@ module.exports = {
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
         let newData = oldData.filter(p => p.id != input);
 
-        // await options.pub.sendToAdmin(`inputs: ${typeof newData}, && ${JSON.stringify(newData)}`);
-
-
         let saved = await db.put(this.dbKey, newData);
 
-        return newData;
+        return {ok: true, modelName: this.modelName};
     },
 
     invalidMessage: function () {
@@ -128,8 +132,6 @@ module.exports = {
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
 
-        // await options.pub?.sendToAdmin(`oldData: ${JSON.stringify(oldData)}`);
-
         let newData = {
             "id": new Date().toUnixTIme(),
             "title": data.title,
@@ -141,29 +143,23 @@ module.exports = {
 
         await db.put(this.dbKey, oldData);
 
-        return oldData;
+        return newData;
     },
 
-    async adminRoute(cmdId, db, message, pub) {
+    async adminRoute(cmdId, db, message, tlgBot) {
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let payment = await this.findByIdDb(db, id);
         let confirmDeleteId = Command.list.confirmDeletePayment.id;
         let managePaymentId = Command.list.managePayment.id;
-
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
-
+        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
 
         if (!payment) {
-            return await pub.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
+            return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
 
-
-        // await pub.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
-
         let text, actions;
-        let opt = {method: 'editMessageText', messageId: message.message_id, pub: pub}
+        let opt = {method: 'editMessageText', messageId: message.message_id}
 
         switch (action) {
             case action.match(/details/)?.input:
@@ -173,7 +169,7 @@ module.exports = {
                 text = ` ${Command.list.managePayment.icon} ${this.modelName} ${payment.title}
                 
 یکی از عملیات مربوطه روانتخاب کنید:`;
-                return await pub.sendInlineButtonRow(chatId, text, actions, opt)
+                return await tlgBot.sendInlineButtonRow(chatId, text, actions, opt)
 
             case action.match(/update/)?.input:
                 let doUpdate = `${Command.list.doUpdatePayment.id};${payment.id}`;
@@ -187,7 +183,7 @@ module.exports = {
 
 ${this.toInput(payment)}
                 `;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 await db.update(chatId, {currentCmd: doUpdate})
 
@@ -196,9 +192,9 @@ ${this.toInput(payment)}
             case action.match(/delete/)?.input:
                 let doDelete = `${confirmDeleteId};${payment.id}`;
                 actions = Command.yesNoButton({cbData: doDelete}, {cbData: managePaymentId})
-                actions.push(Command.backButton("/start"));
+                actions.push(Command.backButton("/editedStart"));
                 text = ` آیا از حذف ${this.modelName} ${payment.title} مطمئنید؟`;
-                var res = await pub.sendInlineButtonRow(chatId, text, actions, opt);
+                var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
                 // await db.update(chatId, {currentCmd: Command.list.confirmDelete.id})
 
