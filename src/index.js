@@ -23,7 +23,9 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-const Logger = !enableLog || env === 'production' ? console :  TlgBot;
+const env = typeof env !== 'undefined' && env ? env : "production";
+const enableLog = typeof enableLog !== 'undefined' ? enableLog : false;
+const Logger = !enableLog || env === 'production' ? console : TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -65,6 +67,9 @@ addEventListener('fetch', async event => {
     const url = new URL(event.request.url);
 
     switch (url.pathname) {
+        case "/check":
+            event.respondWith(check(event));
+            break;
         case SEED:
             //TODO: disable after execute (exec once)
             // event.respondWith(seedDb(event))
@@ -72,7 +77,7 @@ addEventListener('fetch', async event => {
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
             break;
-        case '/registerWebhook':
+        case '/webhook':
             event.respondWith(registerWebhook(event, url, WEBHOOK, SECRET))
             break;
         case '/unRegisterWebhook':
@@ -134,6 +139,18 @@ async function onUpdate(update) {
     }
 }
 
+async function check(event) {
+    let vars = `CHECKING YOUR VARIABLES...
+
+adminId: ${typeof adminId !== 'undefined' && adminId ? '✅ OK' : '❌ NOT OK'},
+tlgSupport: ${typeof tlgSupport !== 'undefined' && tlgSupport ? '✅ OK' : '❌ NOT OK'},
+token: ${typeof botToken !== 'undefined' && botToken ? '✅ OK' : '❌ NOT OK'}
+    
+Make sure that set your variables correctly.`
+
+    return new Response(vars);
+}
+
 /**
  * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
@@ -142,6 +159,7 @@ async function registerWebhook(event, requestUrl, suffix, secret) {
     // https://core.telegram.org/bots/api#setwebhook
     const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`
     const r = await (await fetch(TlgBot.apiUrl('setWebhook', {url: webhookUrl, secret_token: secret}))).json()
+
     return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
 
@@ -151,6 +169,7 @@ async function registerWebhook(event, requestUrl, suffix, secret) {
  */
 async function unRegisterWebhook(event) {
     const r = await (await fetch(TlgBot.apiUrl('setWebhook', {url: ''}))).json()
+
     return new Response('ok' in r && r.ok ? 'Ok' : JSON.stringify(r, null, 2))
 }
 
