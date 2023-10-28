@@ -76,8 +76,8 @@ addEventListener('fetch', async event => {
             event.respondWith(check(event));
             break;
         case SEED:
-            //TODO: disable after execute (exec once)
-            // event.respondWith(seedDb(event))
+            // TODO: disable after execute (exec once)
+            event.respondWith(seedDb(event))
             break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
@@ -95,7 +95,12 @@ addEventListener('fetch', async event => {
 })
 
 async function seedDb(event) {
+    let seedClientApp = await app.getSeedClientApp();
+
+    if (seedClientApp) return new Response('Seed already executed.')
+
     let clientApps = await ClientApp.seedDb(wkv);
+    await app.updateSeedClientApp({input: true})
 
     await Logger.log(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
 

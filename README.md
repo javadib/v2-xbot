@@ -15,6 +15,7 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
   - Manage (CRUD) `Servers` in bot
   - Manage (CRUD) `Payments` methods in bot
 - [x] Apps & link (for users)
+- [x] Custom Welcome text
 - [ ] User Profile
 - [ ] Affiliate system
 #
