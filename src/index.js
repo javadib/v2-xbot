@@ -9,6 +9,8 @@ const admin = require("./models/admin");
 const Admin = require('./models/admin');
 const ClientApp = require('./models/client-app');
 const Command = require('./models/command');
+const App = require('./models/app');
+const app = new App(db);
 
 const DataModel = {Plan, Order, Payment, Server, ClientApp};
 
@@ -385,8 +387,8 @@ async function sendStartMessage(message, isAdmin, options = {}) {
         [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
     ];
-
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
+
     return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow, options)
 }
 
