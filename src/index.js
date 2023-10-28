@@ -76,7 +76,6 @@ addEventListener('fetch', async event => {
             event.respondWith(check(event));
             break;
         case SEED:
-            // TODO: disable after execute (exec once)
             event.respondWith(seedDb(event))
             break;
         case WEBHOOK:
