@@ -9,11 +9,15 @@ const admin = require("./models/admin");
 const Admin = require('./models/admin');
 const ClientApp = require('./models/client-app');
 const Command = require('./models/command');
-
-const DataModel = {Plan, Order, Payment, Server, ClientApp};
+const App = require('./models/app');
 
 const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
+const app = new App(wkv);
+
+
+const DataModel = {Plan, Order, Payment, Server, ClientApp, app};
+
 
 const Hiddify = require("./modules/hiddify");
 const Telegram = require("./modules/telegram");
@@ -295,21 +299,22 @@ async function onMessage(message, options = {}) {
 
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
-                // await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let result = await DataModel[model]?.[func](handler, {Logger});
+                await Logger.log(`result: ${JSON.stringify(result)}`)
                 vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
-                // await Logger.log(`vars: ${JSON.stringify(vars)}`)
+                await Logger.log(`vars: ${JSON.stringify(vars)}`)
             }
             let buttons = await buildButtons(cmd, isAdmin, {Logger, nextCmd: `${cmd.nextId}`});
-            // await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
+            await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {Logger}
             opt = cmd.resultInNew ? opt : Object.assign({}, opt, {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
-            await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
+            // await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
 
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
@@ -327,7 +332,7 @@ async function onMessage(message, options = {}) {
         if (currentCmd) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
-                // await Logger.log(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await Logger.log(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {
@@ -385,9 +390,10 @@ async function sendStartMessage(message, isAdmin, options = {}) {
         [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
     ];
-
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
-    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow, options)
+
+    let welcomeText = await app.getCustomWelcome()
+    return await TlgBot.sendInlineButtonRow(chatId, welcomeText, buttonRow, options)
 }
 
 async function editButtons(message, buttons = []) {

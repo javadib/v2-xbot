@@ -114,7 +114,7 @@ module.exports = class Telegram {
     }
 
     async log(text, options = {}) {
-        text = `log: ${text}`;
+        text = `${text}`;
 
         //TODO: change adminId, have no idea
         return this.sendToAdmin(text, [], {})
