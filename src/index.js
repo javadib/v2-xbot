@@ -209,6 +209,9 @@ async function onMessage(message, options = {}) {
                 return await Promise.resolve();
 
             // case cmdId.match(/\//)?.input :
+            case "aboutBot" :
+                return await aboutBot(message, {method: 'editMessageText', messageId: message.message_id});
+
             case "/editedStart" :
                 let opt = {method: 'editMessageText', messageId: message.message_id};
                 return await sendStartMessage(message, isAdmin, opt);
@@ -320,7 +323,7 @@ async function onMessage(message, options = {}) {
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.savedInSession) {
-                await wkv.update(chatId, {currentCmd: cmd.nextId})
+            await wkv.update(chatId, {currentCmd: cmd.nextId})
             // }
 
             return response
@@ -354,7 +357,7 @@ async function onMessage(message, options = {}) {
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.savedInSession) {
-                await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            await wkv.update(chatId, {currentCmd: currentCmd.nextId})
             // }
 
             return sentMessageRes
@@ -383,12 +386,22 @@ function pushAdminButtons(buttons = [], isAdmin = false) {
     return buttons;
 }
 
+async function aboutBot(message, options = {}) {
+    let chatId = message.chat_id || message.chat.id;
+    let text = Config.bot.aboutBot()
+    let buttons = [];
+    buttons.push(Command.backButton("/editedStart"));
+
+    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, options)
+}
+
 async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
         [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
+        [{text: '🌐 درباره ربات', callback_data: "aboutBot"}],
     ];
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
 
