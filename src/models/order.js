@@ -72,6 +72,8 @@ const order = {
         
 📦 نام پلن: ${sPlan?.name}
 
+📦 مدت زمان: ${sPlan?.maxDays}  روز
+
 💎 قیمت :${Number(sPlan?.totalPrice).toLocaleString()} ${unitPrice}
       
 🔰  ${sPayment?.appSecret} بنام ${sPayment?.appKey}

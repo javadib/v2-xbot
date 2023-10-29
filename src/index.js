@@ -9,11 +9,15 @@ const admin = require("./models/admin");
 const Admin = require('./models/admin');
 const ClientApp = require('./models/client-app');
 const Command = require('./models/command');
-
-const DataModel = {Plan, Order, Payment, Server, ClientApp};
+const App = require('./models/app');
 
 const wKV = require('./modules/wkv');
 const wkv = new wKV(db);
+const app = new App(wkv);
+
+
+const DataModel = {Plan, Order, Payment, Server, ClientApp, app};
+
 
 const Hiddify = require("./modules/hiddify");
 const Telegram = require("./modules/telegram");
@@ -23,9 +27,10 @@ const WEBHOOK = Config.bot.webHook
 const SECRET = Config.bot.secret;
 
 const TlgBot = new Telegram(Config.bot.token);
-const env = typeof env !== 'undefined' && env ? env : "production";
-const enableLog = typeof enableLog !== 'undefined' ? enableLog : false;
+const env = typeof env !== 'undefined' && env ? env : "development";
+const enableLog = typeof enableLog !== 'undefined' && enableLog ? Boolean(enableLog) : false;
 const Logger = !enableLog || env === 'production' ? console : TlgBot;
+// const Logger = TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -71,8 +76,7 @@ addEventListener('fetch', async event => {
             event.respondWith(check(event));
             break;
         case SEED:
-            //TODO: disable after execute (exec once)
-            // event.respondWith(seedDb(event))
+            event.respondWith(seedDb(event))
             break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
@@ -90,12 +94,16 @@ addEventListener('fetch', async event => {
 })
 
 async function seedDb(event) {
+    let seedClientApp = await app.getSeedClientApp();
+
+    if (seedClientApp) return new Response('Seed already executed.')
+
     let clientApps = await ClientApp.seedDb(wkv);
+    await app.updateSeedClientApp({input: true})
 
     await Logger.log(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
 
     return new Response(JSON.stringify(clientApps))
-
 }
 
 /**
@@ -197,14 +205,17 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
-        await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
+        // await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
+        // await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
                 return await Promise.resolve();
 
             // case cmdId.match(/\//)?.input :
+            case "aboutBot" :
+                return await aboutBot(message, {method: 'editMessageText', messageId: message.message_id});
+
             case "/editedStart" :
                 let opt = {method: 'editMessageText', messageId: message.message_id};
                 return await sendStartMessage(message, isAdmin, opt);
@@ -250,7 +261,7 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
             // case cmdId.match(/plan\/(.?)*\/doUpdate/)?.input:
             case cmdId.match(/plan\/.*\/delete/)?.input:
-                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/server\/(.?)*\/details/)?.input:
             case cmdId.match(/server\/(.?)*\/update/)?.input:
@@ -260,13 +271,13 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/(.?)*\/details/)?.input:
             case cmdId.match(/payment\/(.?)*\/update/)?.input:
             case cmdId.match(/payment\/.*\/delete/)?.input:
-                return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Payment.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
             case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
             case cmdId.match(/clientApp\/.*\/delete/)?.input:
                 // await Logger.log(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
-                return await ClientApp.adminRoute(cmdId, handler, TlgBot);
+                return await ClientApp.adminRoute(cmdId, handler, TlgBot, {Logger});
 
             case cmdId.match(/order\/(.?)*\/details/)?.input:
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
@@ -295,27 +306,29 @@ async function onMessage(message, options = {}) {
 
             if (cmd.preFunc) {
                 let {model, func} = cmd.preFuncData();
-                // await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await Logger.log(`cmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 let result = await DataModel[model]?.[func](handler, {Logger});
+                await Logger.log(`result: ${JSON.stringify(result)}`)
                 vars = Object.assign({}, vars, typeof result === 'object' ? result : {})
-                // await Logger.log(`vars: ${JSON.stringify(vars)}`)
+                await Logger.log(`vars: ${JSON.stringify(vars)}`)
             }
             let buttons = await buildButtons(cmd, isAdmin, {Logger, nextCmd: `${cmd.nextId}`});
-            // await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
+            await Logger.log(`buttons: ${JSON.stringify(buttons)}`, []);
 
             let opt = {Logger}
             opt = cmd.resultInNew ? opt : Object.assign({}, opt, {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
-            await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
 
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.savedInSession) {
-                await wkv.update(chatId, {currentCmd: cmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: cmd.nextId})
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return response
@@ -327,7 +340,7 @@ async function onMessage(message, options = {}) {
         if (currentCmd) {
             if (currentCmd.preFunc) {
                 let {model, func} = currentCmd.preFuncData();
-                // await Logger.log(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
+                await Logger.log(`currentCmd: {model, func}: ${JSON.stringify({model, func})}`, []);
 
                 handler.input = uInput || handler.input;
                 let preFunc = await DataModel[model]?.[func](handler, {
@@ -344,12 +357,14 @@ async function onMessage(message, options = {}) {
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
             let opt = {Logger}
-            await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
+            // await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.savedInSession) {
-                await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return sentMessageRes
@@ -378,16 +393,27 @@ function pushAdminButtons(buttons = [], isAdmin = false) {
     return buttons;
 }
 
+async function aboutBot(message, options = {}) {
+    let chatId = message.chat_id || message.chat.id;
+    let text = Config.bot.aboutBot()
+    let buttons = [];
+    buttons.push(Command.backButton("/editedStart"));
+
+    return await TlgBot.sendInlineButtonRow(chatId, text, buttons, options)
+}
+
 async function sendStartMessage(message, isAdmin, options = {}) {
     let chatId = message.chat_id || message.chat.id;
     let buttonRow = [
         [{text: '📦  خرید اشتراک', callback_data: 'selectServer'}],
         [{text: '🛒 سوابق خرید', callback_data: 'order_history'}],
         [{text: '🔗 مشاهده نرم‌افزار', callback_data: Command.list.selectClientApp.id}],
+        [{text: '🌐 درباره ربات', callback_data: "aboutBot"}],
     ];
-
     buttonRow = pushAdminButtons(buttonRow, isAdmin)
-    return await TlgBot.sendInlineButtonRow(chatId, Config.bot.welcomeMessage(), buttonRow, options)
+
+    let welcomeText = await app.getCustomWelcome()
+    return await TlgBot.sendInlineButtonRow(chatId, welcomeText, buttonRow, options)
 }
 
 async function editButtons(message, buttons = []) {
