@@ -131,7 +131,7 @@ module.exports = {
     },
 
     async create({db, input}, options = {}) {
-        // await options.Logger?.log(`before create: ${typeof input} && ${JSON.stringify(input)}`);
+        await options.Logger?.log(`before create: ${typeof input} && ${JSON.stringify(input)}`);
         let data = await this.parseInput(input, options);
 
         if (!data.title || !data.remark || !data.url) {
@@ -139,8 +139,7 @@ module.exports = {
         }
 
         let oldData = await db.get(this.dbKey, {type: "json"}) || [];
-
-        // await options.Logger?.log(`oldData: ${JSON.stringify(oldData)}`);
+        await options.Logger?.log(`oldData: ${JSON.stringify(oldData)}`);
 
         let newData = {
             "id": new Date().toUnixTIme(),
@@ -155,7 +154,7 @@ module.exports = {
         return newData;
     },
 
-    async adminRoute(cmdId, db, message, tlgBot) {
+    async adminRoute(cmdId, db, message, tlgBot, {Logger}) {
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let server = await this.findByIdDb(db, id);
@@ -194,7 +193,9 @@ ${this.toInput(server)}
                 `;
                 var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
-                await db.update(chatId, {currentCmd: doUpdate})
+                let updated = await db.update(chatId, {currentCmd: doUpdate})
+                await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
 
                 return res
 

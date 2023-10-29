@@ -205,8 +205,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
-        await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
+        // await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
+        // await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -271,13 +271,13 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/(.?)*\/details/)?.input:
             case cmdId.match(/payment\/(.?)*\/update/)?.input:
             case cmdId.match(/payment\/.*\/delete/)?.input:
-                return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Payment.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
             case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
             case cmdId.match(/clientApp\/.*\/delete/)?.input:
                 // await Logger.log(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
-                return await ClientApp.adminRoute(cmdId, handler, TlgBot);
+                return await ClientApp.adminRoute(cmdId, handler, TlgBot, {Logger});
 
             case cmdId.match(/order\/(.?)*\/details/)?.input:
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
@@ -327,7 +327,7 @@ async function onMessage(message, options = {}) {
 
             // if (cmd.savedInSession) {
             let updated = await wkv.update(chatId, {currentCmd: cmd.nextId})
-            await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
 
             // }
 
@@ -357,12 +357,14 @@ async function onMessage(message, options = {}) {
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
             let opt = {Logger}
-            await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
+            // await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.savedInSession) {
-            await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return sentMessageRes
