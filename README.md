@@ -31,6 +31,8 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
 4) Extract `dist.zip` and replace whole `index.js` codes with default cloudflare worker code.
 4) Open `YOUR_WORKER.worker.dev/check` to check all variables are `✅ OK`.
 5) Save and deploy worker and send a `GET ` request to `/webhook` path to register webhook of your bot. make sure you see `ok` in response.
+4) Open `YOUR_WORKER.worker.dev/seed` to save initial data.
+
 #
 ![1](./docs/images/register-result.png)
 
