@@ -80,7 +80,7 @@ module.exports = {
         let result = input.split('\n').reduce((pv, cv, i) => {
             let split = cv.split(':');
 
-            if (split.length < 1) return pv;
+            if (split.length < 2) return pv;
 
             pv[split[0].trim()] = split.slice(1).join(':').trim();
 
@@ -146,7 +146,7 @@ module.exports = {
         return newData;
     },
 
-    async adminRoute(cmdId, db, message, tlgBot) {
+    async adminRoute(cmdId, db, message, tlgBot, {Logger}) {
         let chatId = message.chat_id || message.chat.id;
         let [model, id, action] = cmdId.split('/');
         let payment = await this.findByIdDb(db, id);
@@ -185,7 +185,9 @@ ${this.toInput(payment)}
                 `;
                 var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
-                await db.update(chatId, {currentCmd: doUpdate})
+                let updated = await db.update(chatId, {currentCmd: doUpdate})
+                await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
 
                 return res
 

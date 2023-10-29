@@ -26,9 +26,12 @@ module.exports = class wKV {
         // let val = typeof value === 'object' ? JSON.stringify(value) : value;
         let metadata = options.metadata;
 
-        return metadata ? this.ns.put(key, JSON.stringify(value), {
+        let result = metadata ? await this.ns.put(key, JSON.stringify(value), {
             metadata: metadata,
-        }) : this.ns.put(key, JSON.stringify(value))
+        }) : await this.ns.put(key, JSON.stringify(value));
+
+
+        return value;
     };
 
     async delete(key) {

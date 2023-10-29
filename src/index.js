@@ -76,8 +76,7 @@ addEventListener('fetch', async event => {
             event.respondWith(check(event));
             break;
         case SEED:
-            //TODO: disable after execute (exec once)
-            // event.respondWith(seedDb(event))
+            event.respondWith(seedDb(event))
             break;
         case WEBHOOK:
             event.respondWith(handleWebhook(event))
@@ -95,7 +94,12 @@ addEventListener('fetch', async event => {
 })
 
 async function seedDb(event) {
+    let seedClientApp = await app.getSeedClientApp();
+
+    if (seedClientApp) return new Response('Seed already executed.')
+
     let clientApps = await ClientApp.seedDb(wkv);
+    await app.updateSeedClientApp({input: true})
 
     await Logger.log(`seedDb clientApps: ${JSON.stringify(clientApps)}`)
 
@@ -201,8 +205,8 @@ async function onMessage(message, options = {}) {
         let [cmdId, input] = message.text.split(';');
         let handler = {db: wkv, input: input || message.text, message, usrSession, isAdmin};
 
-        await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
-        await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
+        // await Logger.log(`DEBUG MODE -message.text: ${message.text}`, {})
+        // await Logger.log(`DEBUG MODE - user Session: ${JSON.stringify(usrSession)}`, {})
 
         switch (cmdId) {
             case  cmdId.match(/\/silentButton/)?.input:
@@ -257,7 +261,7 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
             // case cmdId.match(/plan\/(.?)*\/doUpdate/)?.input:
             case cmdId.match(/plan\/.*\/delete/)?.input:
-                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/server\/(.?)*\/details/)?.input:
             case cmdId.match(/server\/(.?)*\/update/)?.input:
@@ -267,13 +271,13 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/payment\/(.?)*\/details/)?.input:
             case cmdId.match(/payment\/(.?)*\/update/)?.input:
             case cmdId.match(/payment\/.*\/delete/)?.input:
-                return await Payment.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Payment.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/clientApp\/(.?)*\/details/)?.input:
             case cmdId.match(/clientApp\/(.?)*\/update/)?.input:
             case cmdId.match(/clientApp\/.*\/delete/)?.input:
                 // await Logger.log(`ClientApp.adminRoute}: ${JSON.stringify(cmdId)}`, []);
-                return await ClientApp.adminRoute(cmdId, handler, TlgBot);
+                return await ClientApp.adminRoute(cmdId, handler, TlgBot, {Logger});
 
             case cmdId.match(/order\/(.?)*\/details/)?.input:
             case cmdId.match(/order\/(.?)*\/continuation/)?.input:
@@ -317,13 +321,14 @@ async function onMessage(message, options = {}) {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
-            // await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
 
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.savedInSession) {
-            await wkv.update(chatId, {currentCmd: cmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: cmd.nextId})
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return response
@@ -352,12 +357,14 @@ async function onMessage(message, options = {}) {
             text = (typeof vars === 'object' ? vars : {}).transform(text);
 
             let opt = {Logger}
-            await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
+            // await Logger.log(`currentCmd opt: ${JSON.stringify({vars, text, opt})}`, {});
 
             let sentMessageRes = await TlgBot.sendInlineButtonRow(chatId, text, buttons, opt);
 
             // if (currentCmd.savedInSession) {
-            await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: currentCmd.nextId})
+            // await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return sentMessageRes
