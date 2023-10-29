@@ -1,5 +1,7 @@
 "use strict";
 
+const pkg = require('../package.json');
+
 const config = {
     commands: {
         silentButton: "/silentButton",
@@ -12,8 +14,21 @@ const config = {
         token: botToken,
         webHook: '/endpoint',
         secret: "123456789wertyuiopxcvbnmDGHJKRTYIO", // A-Z, a-z, 0-9, _ and -
-        welcomeMessage(customText) {
-            return customText || `سلام به شما دوست گرامی! 🌟
+        aboutBot() {
+            return `✳️✳✳️✳️
+            
+${pkg.name} 
+${pkg.description}
+
+Current version: ${pkg.version}
+
+${pkg.repository}
+
+Join channel 🤙: https://t.me/v2_xBot
+`
+        },
+        welcomeMessage() {
+            return `سلام به شما دوست گرامی! 🌟
 به ربات V2xBot خوش آمدید! 🎉 از اینکه اینجا هستید، بسیار خوشحالیم.
 
 ما اینجا هستیم تا به شما کمک کنیم و هر سوال یا درخواستی که دارید را رفع کنیم.

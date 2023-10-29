@@ -15,13 +15,15 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
   - Manage (CRUD) `Servers` in bot
   - Manage (CRUD) `Payments` methods in bot
 - [x] Apps & link (for users)
+- [x] Custom Welcome text
+- [x] Seed data for `clientApps`
 - [ ] User Profile
 - [ ] Affiliate system
 #
 
 # Get Started
 0) Create a cloudflare worker, KV namespace & bind to `db` variable
-1) Got to worker settings, variable section, and add following variables:
+1) Got to worker `settings`, `variables` section, and add following variables:
     - `adminId` : your Telegram Admin ID (get from [MyIdInfoBot](https://t.me/Myidinfobot)).
     - `botToken` : your Telegram bot token.
     - `tlgSupport` : your support Telegram username (Remember put `@` at the first).

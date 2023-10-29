@@ -66,7 +66,7 @@ module.exports = {
     },
 
 
-    async adminRoute(cmdId, db, message, tlgBot) {
+    async adminRoute(cmdId, db, message, tlgBot, {Logger}) {
         let chatId = message.chat_id || message.chat.id;
         let isAdmin = chatId === Config.bot.adminId;
         let [model, id, action] = cmdId.split('/');
@@ -74,16 +74,9 @@ module.exports = {
         let confirmDeleteId = Command.list.confirmDelete.id;
         let managePlanId = Command.list.managePlan.id;
 
-
-        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute plan: ${JSON.stringify(plan)}`);
-
-
         if (!plan) {
             return await tlgBot.sendInlineButtonRow(chatId, `${this.modelName} مربوطه پیدا نشد! 🫤`);
         }
-
-
-        // await tlgBot.sendInlineButtonRow(chatId, `adminRoute actions: ${JSON.stringify(actions)} && action: ${action} `);
 
         let text, actions;
         let opt = {method: 'editMessageText', messageId: message.message_id}
@@ -113,7 +106,9 @@ ${this.toInput(plan)}
                 `;
                 var res = await tlgBot.sendInlineButtonRow(chatId, text, actions, opt);
 
-                await db.update(chatId, {currentCmd: doUpdate})
+                let updated = await db.update(chatId, {currentCmd: doUpdate})
+                await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
 
                 return res
 
@@ -162,11 +157,14 @@ ${this.toInput(plan)}
 
     async findAll(db, cmd, options = {}) {
         let {addBackButton = true, nextCmd} = options;
-
         let data = await db.get(this.dbKey, {type: "json"}) || []
-        // let cbData = (p) => cmd.savedInSession ? `${nextCmd};${p.id}` : nextCmd || `${this.dbKey}/${p.id}/details`;
         let cbData = (p) => nextCmd ? p.transform(cmd.nextId) : `${this.dbKey}/${p.id}/details`;
-        let result = data.map(p => [Command.ToTlgButton(p.name, cbData(p))]);
+        let result = data.map(p => {
+            let text = `${p.name}`;
+            // let text = `پنل ${p.name} - ${p.maxDays} روزه  - ${Number(p.totalPrice).toLocaleString()} تومان `;
+
+            return [Command.ToTlgButton(text, cbData(p))];
+        });
 
         let canShowAdminButtons = !cmd.hasOwnProperty("appendAdminButtons") || cmd.appendAdminButtons === true;
         if (canShowAdminButtons && options.forAdmin == true) {
@@ -198,9 +196,9 @@ ${this.toInput(plan)}
         let result = input.split('\n').reduce((pv, cv, i) => {
             let split = cv.split(':');
 
-            if (split.length < 1) return pv;
+            if (split.length < 2) return pv;
 
-            pv[split[0].trim()] = split.slice(1).join(":").trimLeft().trimRight();
+            pv[split[0].trim()] = split.slice(1).join(':').trim();
 
             return pv;
         }, {})

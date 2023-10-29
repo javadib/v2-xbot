@@ -165,6 +165,60 @@ const Cmd = {
             "buttons": "Order"
         },
 
+        "changeWelcome": {
+            "prevId": "/editedStart",
+            "id": "changeWelcome",
+            "title": "تغییر متن خوش آمدگویی",
+            "icon": `🌹`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+            "asButton": true,
+            "body": `متن فعلی:
+             
+{customWelcome}
+
+
+برای تغییر متن دلخواه خود را ارسال کنید:
+`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": 'app;getAll',
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "submitNewWelcome",
+            "savedInSession": false,
+            "buttons": []
+        },
+        "submitNewWelcome": {
+            "prevId": "changeWelcome",
+            "id": "submitNewWelcome",
+            // "title": "ساخت پلن جدید",
+            // "icon": `📦 ➕`,
+            // textIcon() {
+            //     return `${this.icon} ${this.title}`
+            // },
+            "asButton": false,
+            "body": `✅متن شما با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "app;saveCustomWelcome",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "savedInSession": false,
+            "resultInNew": true,
+            "buttons": ["manage"]
+        },
+
+
+
         "manage": {
             "prevId": "/editedStart",
             "id": "manage",
@@ -181,7 +235,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "",
-            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp"]
+            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp", "changeWelcome"]
         },
         "managePlan": {
             "prevId": "manage",
