@@ -29,8 +29,8 @@ const SECRET = Config.bot.secret;
 const TlgBot = new Telegram(Config.bot.token);
 const env = typeof env !== 'undefined' && env ? env : "development";
 const enableLog = typeof enableLog !== 'undefined' && enableLog ? Boolean(enableLog) : false;
-// const Logger = !enableLog || env === 'production' ? console : TlgBot;
-const Logger = TlgBot;
+const Logger = !enableLog || env === 'production' ? console : TlgBot;
+// const Logger = TlgBot;
 
 
 Object.prototype.transform = function (text) {
