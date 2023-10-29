@@ -29,8 +29,8 @@ const SECRET = Config.bot.secret;
 const TlgBot = new Telegram(Config.bot.token);
 const env = typeof env !== 'undefined' && env ? env : "development";
 const enableLog = typeof enableLog !== 'undefined' && enableLog ? Boolean(enableLog) : false;
-const Logger = !enableLog || env === 'production' ? console : TlgBot;
-// const Logger = TlgBot;
+// const Logger = !enableLog || env === 'production' ? console : TlgBot;
+const Logger = TlgBot;
 
 
 Object.prototype.transform = function (text) {
@@ -261,7 +261,7 @@ async function onMessage(message, options = {}) {
             case cmdId.match(/plan\/(.?)*\/update/)?.input:
             // case cmdId.match(/plan\/(.?)*\/doUpdate/)?.input:
             case cmdId.match(/plan\/.*\/delete/)?.input:
-                return await Plan.adminRoute(cmdId, wkv, message, TlgBot);
+                return await Plan.adminRoute(cmdId, wkv, message, TlgBot, {Logger});
 
             case cmdId.match(/server\/(.?)*\/details/)?.input:
             case cmdId.match(/server\/(.?)*\/update/)?.input:
@@ -321,13 +321,14 @@ async function onMessage(message, options = {}) {
                 method: 'editMessageText',
                 messageId: message.message_id
             })
-            // await Logger.log(`opt: ${JSON.stringify(opt)}`, {});
 
             let text1 = (typeof vars === 'object' ? vars : {}).transform(`${cmd.body}\n${cmd.helpText}`);
             let response = await TlgBot.sendInlineButtonRow(chatId, text1, buttons, opt);
 
             // if (cmd.savedInSession) {
-            await wkv.update(chatId, {currentCmd: cmd.nextId})
+            let updated = await wkv.update(chatId, {currentCmd: cmd.nextId})
+            await Logger.log(`wkv.update: ${JSON.stringify(updated)}`, {});
+
             // }
 
             return response

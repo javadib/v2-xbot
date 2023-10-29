@@ -160,7 +160,7 @@ const clientApp = {
         let result = input.split('\n').reduce((pv, cv, i) => {
             let split = cv.split(':');
 
-            if (split.length < 1) return pv;
+            if (split.length < 2) return pv;
 
             pv[split[0].trim()] = split.slice(1).join(':').trim();
 
