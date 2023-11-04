@@ -590,6 +590,18 @@ async function sendInvoice2(message, session, nextCmd) {
     ], {method: 'editMessageText', messageId: message.message_id})
 }
 
+async function doBackup(message, order, opt = {}) {
+    let url = "https://hiddify.rew0rk.xyz/ccFXbUL0WrTuv/1dfae3a6-13cb-4014-8fbf-159d9815432e/";
+    let server1 = {url: url};
+    let res = await new Hiddify().takeBackup(server1, {Logger});
+    let resText = await res.text();
+    // console.log(`takeBackup res: ${resText}`);
+
+    // await TlgBot.sendInlineButtonRow(76458757, `bakcupRes: ${JSON.stringify(bakcupRes)}`, [])
+
+    return await TlgBot.sendDocument("76458757", new Blob(Array.from(resText)), "MMD.json", "new backup from bot")
+}
+
 async function setExtendAccount(message, order, opt = {}) {
     let chatId = message.chat_id || message.chat.id;
     let invoiceSess = {

@@ -5,7 +5,7 @@ const Config = require('../config');
 module.exports = class Telegram {
     _token;
 
-    static instance =  new Telegram(Config.bot.token);
+    static instance = new Telegram(Config.bot.token);
 
     constructor(token) {
         this._token = token;
@@ -40,6 +40,21 @@ module.exports = class Telegram {
             chat_id: chatId,
             text
         }))).json()
+    }
+
+    async sendDocument(chatId, file, fileName, caption, options = {}) {
+        let formData = new FormData();
+        formData.append("chat_id", chatId);
+        formData.append("document", file, fileName);
+        formData.append("caption", caption);
+
+        let requestOptions = {
+            method: 'POST',
+            body: formData,
+            redirect: 'follow'
+        };
+
+        return await fetch(this.apiUrl('sendDocument'), requestOptions)
     }
 
     /**

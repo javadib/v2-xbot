@@ -1,6 +1,6 @@
 "use strict";
 
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 
 const wFetch = require("./wfetch");
@@ -29,7 +29,7 @@ module.exports = class Hiddify {
     }
 
     async extendAccount(messasage, order, plan, server, uid, options = {}) {
-        let data  = {
+        let data = {
             "baseUrl": server.url,
             "uuid": uuidv4(),
             "name": order.accountName,
@@ -51,4 +51,15 @@ module.exports = class Hiddify {
 
         return new wFetch().request(url, 'POST', data, {"Content-Type": "application/json"});
     }
+
+    async takeBackup(server, options = {}) {
+        let url = new URL("/hiddify/backup", this.baseUrl);
+
+        let raw = {
+            "baseUrl": server.url,
+        }
+
+        return new wFetch().request(url, 'POST', raw, {"Content-Type": "application/json"});
+    }
+
 }
