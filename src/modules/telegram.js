@@ -46,7 +46,10 @@ module.exports = class Telegram {
         let formData = new FormData();
         formData.append("chat_id", chatId);
         formData.append("document", file, fileName);
-        formData.append("caption", caption);
+
+        if (caption) {
+            formData.append("caption", caption);
+        }
 
         let requestOptions = {
             method: 'POST',

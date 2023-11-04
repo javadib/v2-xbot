@@ -52,11 +52,11 @@ module.exports = class Hiddify {
         return new wFetch().request(url, 'POST', data, {"Content-Type": "application/json"});
     }
 
-    async takeBackup(server, options = {}) {
+    async takeBackup(data, options = {}) {
         let url = new URL("/hiddify/backup", this.baseUrl);
 
         let raw = {
-            "baseUrl": server.url,
+            "baseUrl": data.serverUrl,
         }
 
         return new wFetch().request(url, 'POST', raw, {"Content-Type": "application/json"});

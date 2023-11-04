@@ -33,6 +33,18 @@ const Logger = !enableLog || env === 'production' ? console : TlgBot;
 // const Logger = TlgBot;
 
 
+Object.prototype.requiredProps = function (required = []) {
+    let data = this;
+    let missingProps = required.filter(p => !data.hasOwnProperty(p));
+
+    let error = missingProps.length >= 1 ?
+        {ok: false, error: {message: "this props is required.", required: missingProps}} : undefined;
+
+    return error;
+}
+
+
+
 Object.prototype.transform = function (text) {
     let keys = Object.keys(this);
 
@@ -63,6 +75,11 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
 
     return data;
 }
+
+
+addEventListener("scheduled", (event) => {
+    event.waitUntil(doBackup(event));
+});
 
 
 /**
@@ -590,16 +607,32 @@ async function sendInvoice2(message, session, nextCmd) {
     ], {method: 'editMessageText', messageId: message.message_id})
 }
 
-async function doBackup(message, order, opt = {}) {
-    let url = "https://hiddify.rew0rk.xyz/ccFXbUL0WrTuv/1dfae3a6-13cb-4014-8fbf-159d9815432e/";
-    let server1 = {url: url};
-    let res = await new Hiddify().takeBackup(server1, {Logger});
-    let resText = await res.text();
-    // console.log(`takeBackup res: ${resText}`);
+async function doBackup(event, opt = {}) {
+    try {
+        // console.log(`doBackup exec: ${new Date().toISOString()}`);
 
-    // await TlgBot.sendInlineButtonRow(76458757, `bakcupRes: ${JSON.stringify(bakcupRes)}`, [])
+        let backup = (await app.getBackupInfo({Logger: TlgBot})) || {};
+        // await TlgBot.sendToAdmin(`backup: ${JSON.stringify(backup)}`, [])
 
-    return await TlgBot.sendDocument("76458757", new Blob(Array.from(resText)), "MMD.json", "new backup from bot")
+        let requiredProps = backup.requiredProps(["chatId", "serverUrl"]);
+        if (requiredProps) {
+            return await TlgBot.sendToAdmin(app.keys.serverBackup.messages.notSet, [])
+        }
+
+        // await TlgBot.sendToAdmin(`backup.url: ${backup.serverUrl}`, []);
+
+        // let url = backup.url; // "https://hiddify.rew0rk.xyz/ccFXbUL0WrTuv/1dfae3a6-13cb-4014-8fbf-159d9815432e/";
+        let res = await new Hiddify().takeBackup({serverUrl: backup.serverUrl}, {Logger});
+        let resText = await res.text();
+        // console.log(`takeBackup res: ${resText}`);
+
+        let fileName = `${new URL(backup.serverUrl).hostname}.json`;
+        return await TlgBot.sendDocument(backup.chatId, new Blob(Array.from(resText)), fileName)
+
+    } catch (e) {
+        let text = e?.stack || e?.message || JSON.stringify(e);
+        return await TlgBot.sendToAdmin(text, [])
+    }
 }
 
 async function setExtendAccount(message, order, opt = {}) {
