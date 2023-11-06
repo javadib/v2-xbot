@@ -33,6 +33,17 @@ const Logger = !enableLog || env === 'production' ? console : TlgBot;
 // const Logger = TlgBot;
 
 
+Object.prototype.requiredProps = function (required = []) {
+    let data = this;
+    let missingProps = required.filter(p => !data.hasOwnProperty(p));
+
+    let error = missingProps.length >= 1 ?
+        {ok: false, error: {message: "this props is required.", required: missingProps}} : undefined;
+
+    return error;
+}
+
+
 Object.prototype.transform = function (text) {
     let keys = Object.keys(this);
 
@@ -63,6 +74,16 @@ Array.prototype.ToTlgButtons = async function ({idKey, textKey}, prevCmd, addBac
 
     return data;
 }
+
+
+addEventListener("scheduled", async (event) => {
+    try {
+        event.waitUntil(doBackup(event));
+    } catch (e) {
+        let text = e?.stack || e?.message || JSON.stringify(e);
+        return await TlgBot.sendToAdmin(text, [])
+    }
+});
 
 
 /**
@@ -588,6 +609,27 @@ async function sendInvoice2(message, session, nextCmd) {
         // [{text: '❗️ لغو خرید', callback_data: '/start'}],
         [{text: "برگشت ↩️", callback_data: Command.list.selectPayment.id}]
     ], {method: 'editMessageText', messageId: message.message_id})
+}
+
+async function doBackup(event, opt = {}) {
+    // console.log(`doBackup exec: ${new Date().toISOString()}`);
+
+    let backup = (await app.getBackupInfo({Logger: TlgBot})) || {};
+    // await TlgBot.sendToAdmin(`backup: ${JSON.stringify(backup)}`, [])
+
+    let requiredProps = backup.requiredProps(["chatId", "serverUrl"]);
+    if (requiredProps) {
+        return await TlgBot.sendToAdmin(app.keys.serverBackup.messages.notSet, [])
+    }
+
+    // await TlgBot.sendToAdmin(`backup.url: ${backup.serverUrl}`, []);
+
+    let res = await new Hiddify().takeBackup({serverUrl: backup.serverUrl}, {Logger});
+    let resText = await res.text();
+    // console.log(`takeBackup res: ${resText}`);
+
+    let fileName = `${new URL(backup.serverUrl).hostname}.json`;
+    return await TlgBot.sendDocument(backup.chatId, new Blob(Array.from(resText)), fileName)
 }
 
 async function setExtendAccount(message, order, opt = {}) {

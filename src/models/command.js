@@ -217,6 +217,54 @@ const Cmd = {
             "buttons": ["manage"]
         },
 
+        "backupText": {
+            "prevId": "manage",
+            "id": "backupText",
+            "title": "تنظیمات بکاپ",
+            "icon": `🚨`,
+            textIcon() {
+                return `${this.icon} ${this.title}`
+            },
+
+            "asButton": true,
+            "body": `🚨
+
+برای تهیه بکاپ، طبق الگوی زیر مشخصات سرور رو ثبت کنید:
+serverUrl: ${"آدرس سرور".replaceAll(" ", "_")} 
+chatId: ${"آیدی کانال/گروه/شخص".replaceAll(" ", "_")} 
+`,
+            "successText": ``,
+            "helpText": `
+توجه کنید فقط مقدار بعد از : رو تغییر بدید`,
+            "preFunc": "",
+            "nextId": "setBackupInfo",
+            "savedInSession": true,
+            "buttons": []
+        },
+        "setBackupInfo": {
+            "prevId": "manage",
+            "id": "setBackupInfo",
+            // "title": "ساخت پلن جدید",
+            // "icon": `📦 ➕`,
+            // textIcon() {
+            //     return `${this.icon} ${this.title}`
+            // },
+            "asButton": false,
+            "body": `✅ تنظیمات بکاپ با موفقیت ثبت شد.`,
+            "successText": ``,
+            "helpText": ``,
+            "preFunc": "app;setBackupInfo",
+            preFuncData() {
+                let [model, func] = this.preFunc.split(';');
+
+                return {model, func}
+            },
+            "nextId": "",
+            "savedInSession": true,
+            "resultInNew": true,
+            "buttons": ["manage"]
+        },
+
 
 
         "manage": {
@@ -235,7 +283,7 @@ const Cmd = {
             "helpText": ``,
             "preFunc": '',
             "nextId": "",
-            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp", "changeWelcome"]
+            "buttons": ["managePlan", "manageServer", "managePayment", "manageClientApp", "changeWelcome", "backupText"]
         },
         "managePlan": {
             "prevId": "manage",

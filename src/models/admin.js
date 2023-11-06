@@ -11,6 +11,7 @@ module.exports = {
             [{text: Command.list.manageServer.textIcon(), callback_data: Command.list.manageServer.id}],
             [{text: Command.list.managePayment.textIcon(), callback_data: Command.list.managePayment.id}],
             [{text: Command.list.changeWelcome.textIcon(), callback_data: Command.list.changeWelcome.id}],
+            [{text: Command.list.backupText.textIcon(), callback_data: Command.list.backupText.id}],
         ]
     },
 
