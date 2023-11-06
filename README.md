@@ -17,6 +17,7 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
 - [x] Apps & link (for users)
 - [x] Custom Welcome text
 - [x] Seed data for `clientApps`
+- [x] Make Auto-Backup & publish to Telegram chat
 - [ ] User Profile
 - [ ] Affiliate system
 #
