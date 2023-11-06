@@ -220,7 +220,7 @@ const Cmd = {
         "backupText": {
             "prevId": "manage",
             "id": "backupText",
-            "title": "تهیه نسخه پشتیبان",
+            "title": "تنظیمات بکاپ",
             "icon": `🚨`,
             textIcon() {
                 return `${this.icon} ${this.title}`
@@ -230,8 +230,7 @@ const Cmd = {
             "body": `🚨
 
 برای تهیه بکاپ، طبق الگوی زیر مشخصات سرور رو ثبت کنید:
-serverUrl: ${"آدرس سرور".replaceAll(" ", "_")}
-doPerHour: ${"هر چند ساعت؟".replaceAll(" ", "_")} 
+serverUrl: ${"آدرس سرور".replaceAll(" ", "_")} 
 chatId: ${"آیدی کانال/گروه/شخص".replaceAll(" ", "_")} 
 `,
             "successText": ``,

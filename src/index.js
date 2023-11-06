@@ -624,7 +624,6 @@ async function doBackup(event, opt = {}) {
 
     // await TlgBot.sendToAdmin(`backup.url: ${backup.serverUrl}`, []);
 
-    // let url = backup.url; // "https://hiddify.rew0rk.xyz/ccFXbUL0WrTuv/1dfae3a6-13cb-4014-8fbf-159d9815432e/";
     let res = await new Hiddify().takeBackup({serverUrl: backup.serverUrl}, {Logger});
     let resText = await res.text();
     // console.log(`takeBackup res: ${resText}`);

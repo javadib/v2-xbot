@@ -23,15 +23,16 @@ v2-xBot is multi panel, serverless (cloudflare worker) bot to order management &
 
 # Get Started
 0) Create a cloudflare worker, KV namespace & bind to `db` variable
-1) Got to worker `settings`, `variables` section, and add following variables:
+1) Go to worker `settings`, `variables` section, and add following variables:
     - `adminId` : your Telegram Admin ID (get from [MyIdInfoBot](https://t.me/Myidinfobot)).
     - `botToken` : your Telegram bot token.
     - `tlgSupport` : your support Telegram username (Remember put `@` at the first).
 3) Download [Latest Version](https://github.com/javadib/v2-xbot/releases/latest/download/dist.zip)
 4) Extract `dist.zip` and replace whole `index.js` codes with default cloudflare worker code.
 4) Open `YOUR_WORKER.worker.dev/check` to check all variables are `✅ OK`.
-5) Save and deploy worker and send a `GET ` request to `/webhook` path to register webhook of your bot. make sure you see `ok` in response.
 4) Open `YOUR_WORKER.worker.dev/seed` to save initial data.
+5) To enable Auto-Backup, first set values in bot management section, then Go to worker, `Triggers` tab, `Cron Triggers` section, and add cron trigger.
+5) Save and deploy worker and send a `GET ` request to `/webhook` path to register webhook of your bot. make sure you see `ok` in response.
 
 #
 ![1](./docs/images/register-result.png)

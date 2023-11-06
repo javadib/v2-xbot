@@ -28,7 +28,10 @@ module.exports = class Hiddify {
         return new wFetch().request(url, 'POST', raw, {"Content-Type": "application/json"});
     }
 
-    async extendAccount(messasage, order, plan, server, uid, options = {}) {
+    async extendAccount(message, order, plan, server, uid, options = {}) {
+        let url = new URL(`/hiddify/extend`, this.baseUrl);
+
+        //TODO: fixme
         let data = {
             "baseUrl": server.url,
             "uuid": uuidv4(),
