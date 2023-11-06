@@ -31,6 +31,7 @@ module.exports = class Hiddify {
     async extendAccount(message, order, plan, server, uid, options = {}) {
         let url = new URL(`/hiddify/extend`, this.baseUrl);
 
+        //TODO: fixme
         let data = {
             "baseUrl": server.url,
             "uuid": uuidv4(),

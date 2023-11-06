@@ -1,7 +1,7 @@
 {
   "name": "v2-xbot",
   "description": "A multi panel, serverless (cloudflare worker) bot to order management & VPN Accounting",
-  "version": "1.1.9.0",
+  "version": "1.1.9.2",
   "author": "javadib",
   "repository": "https://github.com/javadib/v2-xbot.git",
   "scripts": {
